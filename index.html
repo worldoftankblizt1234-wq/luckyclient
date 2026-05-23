@@ -214,19 +214,22 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejwe
 let isRegister = false, fixFiles = [], currentUser = null;
 let ordContactType = 'gmail', fixContactType = 'gmail';
 
-// 👉 Xử lý Google Sign-In redirect result
-auth.getRedirectResult().then(result => {
-    if (result.user) {
-        console.log('Google sign-in redirect success');
-    }
-}).catch(error => {
-    console.log('Google sign-in redirect error:', error);
-});
-
+// 👉 GOOGLE SIGN-IN: Popup trước, Redirect fallback
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithRedirect(provider);
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
+    auth.signInWithPopup(provider).catch(error => {
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+            auth.signInWithRedirect(provider);
+        }
+    });
 }
+
+// Xử lý redirect result
+auth.getRedirectResult().then(result => {
+    if (result.user) console.log('Google redirect OK');
+}).catch(error => console.log('Redirect error:', error));
 
 function togglePassword() {
     const p = document.getElementById('authPass');

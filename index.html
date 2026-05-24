@@ -80,6 +80,10 @@
         .eye-icon.hidden::after { content: ''; position: absolute; width: 24px; height: 2px; background: #ef4444; border-radius: 0; top: 9px; left: -1px; transform: rotate(45deg); }
         
         .upload-notice { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 0.8rem; color: #fbbf24; text-align: center; display: none; }
+        
+        .browser-notice { background: rgba(251,191,36,0.15); border: 2px solid #fbbf24; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center; display: none; }
+        .browser-notice p { font-size: 0.9rem; margin: 0 0 10px 0; }
+        .btn-browser { display: inline-block; background: #4361ee; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -93,6 +97,12 @@
             <div id="authError" class="alert alert-danger" style="display:none;"></div>
             
             <div id="step1">
+                <div class="browser-notice" id="browserNotice">
+                    <p>⚠️ <strong>Để đăng nhập Google, vui lòng mở bằng trình duyệt!</strong></p>
+                    <a href="https://sbidi-buy.pages.dev" class="btn-browser">📱 Mở bằng Chrome / Cốc Cốc</a>
+                    <p style="font-size:0.7rem;color:#94a3b8;margin:8px 0 0 0;">Sau đó truy cập: sbidi-buy.pages.dev</p>
+                </div>
+                
                 <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()"><img src="https://www.google.com/favicon.ico" alt="G"> Đăng nhập với Google</button>
                 <div style="text-align:center;margin:8px 0;color:var(--text2);">— HOẶC —</div>
                 
@@ -201,7 +211,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 👉 CONFIG FIREBASE - authDomain đã sửa thành sbidi-buy.pages.dev
 firebase.initializeApp({
     apiKey: "AIzaSyCzYdbFyj3RYuHiDjKxahrnBTHlvP-gytk",
     authDomain: "sbidi-buy.pages.dev",
@@ -215,23 +224,22 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejwe
 let isRegister = false, fixFiles = [], currentUser = null;
 let ordContactType = 'gmail', fixContactType = 'gmail';
 
-// 👉 GOOGLE SIGN-IN
+(function() {
+    const ua = navigator.userAgent.toLowerCase();
+    if (ua.includes('zalo') || ua.includes('fbav') || ua.includes('fban') || ua.includes('fbios') || ua.includes('tiktok')) {
+        document.getElementById('browserNotice').style.display = 'block';
+        document.querySelector('.btn-google').style.display = 'none';
+    }
+})();
+
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     auth.signInWithPopup(provider).catch(error => {
         if (error.code === 'auth/popup-closed-by-user') return;
-        if (error.code === 'auth/popup-blocked') {
-            auth.signInWithRedirect(provider);
-        } else {
-            showError('Đăng nhập Google thất bại!');
-        }
+        showError('Đăng nhập Google thất bại!');
     });
 }
-
-auth.getRedirectResult().then(result => {
-    if (result.user) console.log('✅ Google redirect OK');
-}).catch(error => console.log('Redirect error:', error));
 
 function togglePassword() {
     const p = document.getElementById('authPass');
@@ -441,7 +449,6 @@ async function submitFix() {
     btn.disabled = true;
     btn.innerHTML = '<span class="loading-spinner"></span> Đang gửi...';
     notice.style.display = 'block';
-    
     const uid = currentUser?.uid || '';
     const email = fixContactType==='gmail' ? document.getElementById('fixEmail').value.trim() : '';
     const fb = fixContactType==='facebook' ? document.getElementById('fixFacebook').value.trim() : '';
@@ -449,7 +456,6 @@ async function submitFix() {
     if (fixContactType==='gmail' && !email) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập Gmail!'); }
     if (fixContactType==='facebook' && !fb) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập link FB!'); }
     if (!document.getElementById('fixService').value) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Chọn loại!'); }
-    
     let filesData = [];
     if (fixFiles.length > 0) {
         for (const f of fixFiles) {
@@ -457,15 +463,7 @@ async function submitFix() {
             filesData.push({ fileName: f.name, fileData: b64 });
         }
     }
-    
-    await sendToGAS({ 
-        uid, email, facebook: fb, 
-        contact: fixContactType, 
-        serviceType: document.getElementById('fixService').value, 
-        desc: document.getElementById('fixDesc').value.trim(), 
-        files: filesData 
-    });
-    
+    await sendToGAS({ uid, email, facebook: fb, contact: fixContactType, serviceType: document.getElementById('fixService').value, desc: document.getElementById('fixDesc').value.trim(), files: filesData });
     ['fixEmail','fixFacebook','fixDesc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
     document.getElementById('fixService').value = ''; fixFiles = [];
     document.getElementById('fixPreview').innerHTML = ''; document.getElementById('fixFile').value = '';

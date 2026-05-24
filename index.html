@@ -80,10 +80,6 @@
         .eye-icon.hidden::after { content: ''; position: absolute; width: 24px; height: 2px; background: #ef4444; border-radius: 0; top: 9px; left: -1px; transform: rotate(45deg); }
         
         .upload-notice { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 0.8rem; color: #fbbf24; text-align: center; display: none; }
-        
-        .browser-notice { background: rgba(251,191,36,0.15); border: 2px solid #fbbf24; border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center; display: none; }
-        .browser-notice p { font-size: 0.9rem; margin: 0 0 10px 0; }
-        .btn-browser { display: inline-block; background: #4361ee; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -97,12 +93,6 @@
             <div id="authError" class="alert alert-danger" style="display:none;"></div>
             
             <div id="step1">
-                <div class="browser-notice" id="browserNotice">
-                    <p>⚠️ <strong>Để đăng nhập Google, vui lòng mở bằng trình duyệt!</strong></p>
-                    <a href="https://sbidi-buy.pages.dev" class="btn-browser">📱 Mở bằng Chrome / Cốc Cốc</a>
-                    <p style="font-size:0.7rem;color:#94a3b8;margin:8px 0 0 0;">Sau đó truy cập: sbidi-buy.pages.dev</p>
-                </div>
-                
                 <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()"><img src="https://www.google.com/favicon.ico" alt="G"> Đăng nhập với Google</button>
                 <div style="text-align:center;margin:8px 0;color:var(--text2);">— HOẶC —</div>
                 
@@ -224,11 +214,25 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejwe
 let isRegister = false, fixFiles = [], currentUser = null;
 let ordContactType = 'gmail', fixContactType = 'gmail';
 
+// 👉 TỰ ĐỘNG CHUYỂN SANG CHROME NẾU PHÁT HIỆN MXH WEBVIEW
 (function() {
     const ua = navigator.userAgent.toLowerCase();
-    if (ua.includes('zalo') || ua.includes('fbav') || ua.includes('fban') || ua.includes('fbios') || ua.includes('tiktok')) {
-        document.getElementById('browserNotice').style.display = 'block';
-        document.querySelector('.btn-google').style.display = 'none';
+    const isZalo = ua.includes('zalo');
+    const isFB = ua.includes('fbav') || ua.includes('fban') || ua.includes('fbios');
+    const isTikTok = ua.includes('tiktok');
+    const isAndroid = /android/i.test(ua);
+    const isIOS = /iphone|ipad|ipod/i.test(ua);
+    
+    if (isZalo || isFB || isTikTok) {
+        if (isAndroid) {
+            // Tự động mở Chrome trên Android
+            window.location.href = 'intent://sbidi-buy.pages.dev#Intent;scheme=https;package=com.android.chrome;end';
+        } else if (isIOS) {
+            // Tự động mở Safari trên iOS
+            window.location.href = 'https://sbidi-buy.pages.dev';
+        } else {
+            window.location.href = 'https://sbidi-buy.pages.dev';
+        }
     }
 })();
 

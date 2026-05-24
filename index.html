@@ -4,36 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>SBIDI DEV - Khách Hàng</title>
-    
-    <!-- Firebase v9 Modular -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzYdbFyj3RYuHiDjKxahrnBTHlvP-gytk",
-            authDomain: "sbidi-client.firebaseapp.com",
-            projectId: "sbidi-client",
-            storageBucket: "sbidi-client.firebasestorage.app",
-            messagingSenderId: "565423884951",
-            appId: "1:565423884951:web:63ef1db9bd675f249637d2"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejweJ6WIqe0aFYIP6ylUseMmHj6ArcajQ7N4hxa8ThUK2ey-1w/exec';
-        
-        window.auth = auth;
-        window.signInWithPopup = signInWithPopup;
-        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-        window.updateProfile = updateProfile;
-        window.onAuthStateChanged = onAuthStateChanged;
-        window.signOut = signOut;
-        window.GoogleAuthProvider = GoogleAuthProvider;
-        window.GAS_URL = GAS_URL;
-    </script>
-    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <style>
@@ -63,16 +35,16 @@
         
         .btn { border-radius: 12px; padding: 14px; font-weight: 700; border: none; font-size: 15px; cursor: pointer; }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(67,97,238,0.4); }
-        .btn-primary:disabled { opacity: 0.5; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; }
-        .btn-danger { background: #dc2626; color: white; }
+        .btn-danger { background: #dc2626; color: white; box-shadow: 0 4px 15px rgba(220,38,38,0.4); }
         .btn-google { background: white; color: #1e293b; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-google img { width: 20px; height: 20px; }
         .btn-copy { background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.5); border-radius: 10px; padding: 11px 16px; font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%; }
-        .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; }
+        .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
         
         .uid-display { background: rgba(56,189,248,0.15); border: 2px dashed rgba(56,189,248,0.6); border-radius: 12px; padding: 18px; text-align: center; font-size: 1.2rem; font-weight: 700; color: #38bdf8; word-break: break-all; }
-        .upload-area { border: 2px dashed rgba(255,255,255,0.3); border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; }
+        .upload-area { border: 2px dashed rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; }
         .step-indicator { display: flex; gap: 10px; margin-bottom: 18px; justify-content: center; }
         .step-dot { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
         .step-dot.done { background: #10b981; color: white; }
@@ -84,6 +56,7 @@
         .btn-remove-img { position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; }
         .guide-box { background: rgba(251,191,36,0.12); border-left: 3px solid #fbbf24; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.85rem; color: #fde68a; }
+        .copy-status { font-size: 0.8rem; margin-top: 4px; color: #38bdf8; }
         label { font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 4px; display: block; }
         .alert { border-radius: 10px; font-size: 0.85rem; }
         .pass-rules { font-size: 0.7rem; color: var(--text2); margin-top: 4px; }
@@ -120,7 +93,7 @@
             <div id="authError" class="alert alert-danger" style="display:none;"></div>
             
             <div id="step1">
-                <button class="btn btn-google w-100 mb-3" id="googleBtn"><img src="https://www.google.com/favicon.ico" alt="G"> Đăng nhập với Google</button>
+                <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()"><img src="https://www.google.com/favicon.ico" alt="G"> Đăng nhập với Google</button>
                 <div style="text-align:center;margin:8px 0;color:var(--text2);">— HOẶC —</div>
                 
                 <div class="mb-3" id="displayNameGroup" style="display:none;"><label>Tên hiển thị</label><input type="text" id="authDisplayName" class="form-control" placeholder="VD: Nguyễn Văn A"></div>
@@ -128,7 +101,7 @@
                 <div class="mb-3">
                     <label>Mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="authPass" class="form-control" placeholder="Ít nhất 8 ký tự">
+                        <input type="password" id="authPass" class="form-control" placeholder="Ít nhất 8 ký tự" oninput="checkPassStrength()">
                         <button type="button" class="toggle-password" onclick="togglePassword()"><div class="eye-icon" id="eyeIcon"></div></button>
                     </div>
                     <div class="pass-rules" id="passRules" style="display:none;"><span id="rule1">1 HOA</span> | <span id="rule2">1 thường</span> | <span id="rule3">1 số</span> | <span id="rule4">1 ĐB</span> | <span id="rule5">>=8</span></div>
@@ -150,7 +123,7 @@
 </div>
 
 <div id="mainScreen" style="display:none;">
-    <div class="header"><div class="header-logo"><div class="logo-icon">S</div><h3>SBIDI DEV</h3></div><div style="display:flex;align-items:center;gap:8px;"><span class="greeting" id="greetingText"></span><button class="btn btn-outline btn-sm" onclick="doLogout()" style="padding:5px 10px;font-size:0.8rem;">Thoát</button></div></div>
+    <div class="header"><div class="header-logo"><div class="logo-icon">S</div><h3>SBIDI DEV</h3></div><div style="display:flex;align-items:center;gap:8px;"><span class="greeting" id="greetingText"></span><button class="btn btn-outline btn-sm" onclick="logout()" style="padding:5px 10px;font-size:0.8rem;">Thoát</button></div></div>
     <div class="tab-bar">
         <div class="tab-item active" onclick="switchTab('home')"><i class="bi bi-house"></i>Trang Chủ</div>
         <div class="tab-item" onclick="switchTab('orders')"><i class="bi bi-cart"></i>Đặt App</div>
@@ -211,12 +184,13 @@
             <p style="color:white;" id="settingsDisplayName">---</p>
             <div class="uid-display mt-2" id="settingsUid">---</div>
             <button class="btn-copy mt-2" onclick="copyUIDFromSettings()">SAO CHÉP UID</button>
+            <p class="copy-status" id="settingsCopyStatus"></p>
         </div>
         <div class="card">
             <p>📧 Email: <span id="settingsEmail" class="highlight-blue">---</span></p>
             <p>📅 Ngày tạo: <span id="settingsDate" class="highlight-blue">---</span></p>
         </div>
-        <button class="btn btn-outline w-100 mt-2" onclick="doLogout()">Đăng xuất</button>
+        <button class="btn btn-outline w-100 mt-2" onclick="logout()">Đăng xuất</button>
     </div>
 </div>
 
@@ -226,63 +200,83 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, onAuthStateChanged, signOut, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const firebaseConfig = {
+<script>
+// 👉 CONFIG FIREBASE - authDomain đã sửa thành sbidi-buy.pages.dev
+firebase.initializeApp({
     apiKey: "AIzaSyCzYdbFyj3RYuHiDjKxahrnBTHlvP-gytk",
-    authDomain: "sbidi-client.firebaseapp.com",
+    authDomain: "sbidi-buy.pages.dev",
     projectId: "sbidi-client",
     storageBucket: "sbidi-client.firebasestorage.app",
     messagingSenderId: "565423884951",
     appId: "1:565423884951:web:63ef1db9bd675f249637d2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+});
+const auth = firebase.auth();
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejweJ6WIqe0aFYIP6ylUseMmHj6ArcajQ7N4hxa8ThUK2ey-1w/exec';
-
 let isRegister = false, fixFiles = [], currentUser = null;
 let ordContactType = 'gmail', fixContactType = 'gmail';
 
-// 👉 GOOGLE SIGN-IN (modular - popup)
-document.getElementById('googleBtn').addEventListener('click', async () => {
-    const provider = new GoogleAuthProvider();
+// 👉 GOOGLE SIGN-IN
+function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-        await signInWithPopup(auth, provider);
-    } catch(e) {
-        console.error('Google sign-in error:', e);
-        if (e.code === 'auth/popup-closed-by-user') return;
-        showError('Đăng nhập Google thất bại!');
-    }
-});
+    auth.signInWithPopup(provider).catch(error => {
+        if (error.code === 'auth/popup-closed-by-user') return;
+        if (error.code === 'auth/popup-blocked') {
+            auth.signInWithRedirect(provider);
+        } else {
+            showError('Đăng nhập Google thất bại!');
+        }
+    });
+}
 
-window.togglePassword = function() {
+auth.getRedirectResult().then(result => {
+    if (result.user) console.log('✅ Google redirect OK');
+}).catch(error => console.log('Redirect error:', error));
+
+function togglePassword() {
     const p = document.getElementById('authPass');
     const e = document.getElementById('eyeIcon');
     if (p.type === 'password') { p.type = 'text'; e.classList.add('hidden'); }
     else { p.type = 'password'; e.classList.remove('hidden'); }
-};
+}
 
-window.showFbGuide = function() { alert('Vào Facebook → Trang cá nhân → Copy link'); };
+function showFbGuide() { alert('Vào Facebook → Trang cá nhân → Copy link'); }
 
-window.switchOrdContact = function(t) {
+function switchOrdContact(t) {
     ordContactType = t;
     document.getElementById('ordGmailGroup').style.display = t==='gmail'?'block':'none';
     document.getElementById('ordFacebookGroup').style.display = t==='facebook'?'block':'none';
     document.querySelectorAll('#ordContactToggle .toggle-option').forEach((e,i)=>e.classList.toggle('active',(i===0&&t==='gmail')||(i===1&&t==='facebook')));
-};
+}
 
-window.switchFixContact = function(t) {
+function switchFixContact(t) {
     fixContactType = t;
     document.getElementById('fixGmailGroup').style.display = t==='gmail'?'block':'none';
     document.getElementById('fixFacebookGroup').style.display = t==='facebook'?'block':'none';
     document.querySelectorAll('#fixContactToggle .toggle-option').forEach((e,i)=>e.classList.toggle('active',(i===0&&t==='gmail')||(i===1&&t==='facebook')));
-};
+}
 
-window.toggleAuth = function() {
+function checkPassStrength() {
+    const pass = document.getElementById('authPass').value;
+    const rules = document.getElementById('passRules');
+    if (!isRegister) { rules.style.display = 'none'; return true; }
+    rules.style.display = 'block';
+    ['rule1','rule2','rule3','rule4','rule5'].forEach((id,i)=>{
+        const tests = [/[A-Z]/,/[a-z]/,/[0-9]/,/[!@#$%^&*(),.?":{}|<>]/,/.{8,}/];
+        document.getElementById(id).className = tests[i].test(pass) ? 'valid' : '';
+    });
+}
+
+function validatePassword(p) {
+    if (p.length<8) return 'Mật khẩu >= 8 ký tự!';
+    if (!/[A-Z]/.test(p)) return 'Cần 1 chữ HOA!';
+    if (!/[a-z]/.test(p)) return 'Cần 1 chữ thường!';
+    if (!/[0-9]/.test(p)) return 'Cần 1 số!';
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(p)) return 'Cần 1 ký tự đặc biệt!';
+    return null;
+}
+
+function toggleAuth() {
     isRegister = !isRegister;
     document.getElementById('authTitle').textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
     document.getElementById('authBtn').textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
@@ -292,9 +286,9 @@ window.toggleAuth = function() {
     document.getElementById('authError').style.display = 'none';
     document.getElementById('authPass').type = 'password';
     document.getElementById('eyeIcon').classList.remove('hidden');
-};
+}
 
-window.handleAuth = async function() {
+async function handleAuth() {
     const email = document.getElementById('authEmail').value.trim();
     const pass = document.getElementById('authPass').value.trim();
     const name = document.getElementById('authDisplayName')?.value.trim();
@@ -304,11 +298,12 @@ window.handleAuth = async function() {
     try {
         if (isRegister) {
             if (!name) { showError('Nhập Tên!'); btn.disabled = false; btn.textContent = 'ĐĂNG KÝ'; return; }
-            const cred = await createUserWithEmailAndPassword(auth, email, pass);
-            await updateProfile(cred.user, { displayName: name });
+            const e = validatePassword(pass); if (e) { showError(e); btn.disabled = false; btn.textContent = 'ĐĂNG KÝ'; return; }
+            const cred = await auth.createUserWithEmailAndPassword(email, pass);
+            await cred.user.updateProfile({ displayName: name });
             document.getElementById('newUid').textContent = cred.user.uid;
             document.getElementById('step1').style.display = 'none'; document.getElementById('step2').style.display = 'block';
-        } else { await signInWithEmailAndPassword(auth, email, pass); }
+        } else { await auth.signInWithEmailAndPassword(email, pass); }
     } catch(e) {
         if (e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential') showError('Sai tài khoản hoặc mật khẩu!');
         else if (e.code==='auth/email-already-in-use') showError('Email đã được đăng ký!');
@@ -316,19 +311,19 @@ window.handleAuth = async function() {
         else if (e.code==='auth/too-many-requests') showError('Thử quá nhiều lần!');
     }
     btn.disabled = false; btn.textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
-};
+}
 
 function showError(m) { const e = document.getElementById('authError'); e.textContent = m; e.style.display = 'block'; }
-window.finishRegister = function() { document.getElementById('authScreen').style.display = 'none'; document.getElementById('mainScreen').style.display = 'block'; showGreeting(); };
+function finishRegister() { document.getElementById('authScreen').style.display = 'none'; document.getElementById('mainScreen').style.display = 'block'; showGreeting(); }
 
 function copyText(t) { 
     if (navigator.clipboard) { navigator.clipboard.writeText(t); return true; }
     const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); return true; } catch(e) {} finally { document.body.removeChild(ta); }
 }
-window.copyUID = function() { copyText(document.getElementById('newUid').textContent); new bootstrap.Toast(document.getElementById('copyToast')).show(); };
-window.copyUIDFromSettings = function() { copyText(currentUser?.uid||''); new bootstrap.Toast(document.getElementById('copyToast')).show(); };
+function copyUID() { copyText(document.getElementById('newUid').textContent); new bootstrap.Toast(document.getElementById('copyToast')).show(); }
+function copyUIDFromSettings() { copyText(currentUser?.uid||''); new bootstrap.Toast(document.getElementById('copyToast')).show(); }
 
-onAuthStateChanged(auth, u => {
+auth.onAuthStateChanged(u => {
     if (u) {
         currentUser = u;
         document.getElementById('authScreen').style.display = 'none';
@@ -354,52 +349,16 @@ function showGreeting() {
     document.getElementById('welcomeMsg').textContent = `Chào buổi ${g}! Bạn cần gì hôm nay?`;
 }
 
-window.doLogout = function() { signOut(auth); };
+function logout() { auth.signOut(); }
 
-window.switchTab = function(t) {
+function switchTab(t) {
     document.querySelectorAll('.tab-item').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
     document.querySelector(`.tab-item[onclick="switchTab('${t}')"]`).classList.add('active');
     document.getElementById('page-'+t).classList.add('active');
     if (t==='orders') document.getElementById('ordUid').value = currentUser?.uid || '';
     if (t==='fix') document.getElementById('fixUid').value = currentUser?.uid || '';
-};
-
-// Các hàm còn lại giữ nguyên...
-window.previewFix = function(e) {
-    const files = Array.from(e.target.files);
-    if (files.length > 6) { alert('Tối đa 6 ảnh!'); e.target.value = ''; return; }
-    fixFiles = files;
-    const d = document.getElementById('fixPreview');
-    d.innerHTML = '';
-    files.forEach((f, i) => {
-        const r = new FileReader();
-        r.onload = ev => {
-            const div = document.createElement('div');
-            div.className = 'preview-container';
-            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${i})">✕</button>`;
-            d.appendChild(div);
-        };
-        r.readAsDataURL(f);
-    });
-};
-
-window.removeFixImage = function(i) {
-    fixFiles.splice(i, 1);
-    const d = document.getElementById('fixPreview');
-    d.innerHTML = '';
-    fixFiles.forEach((f, j) => {
-        const r = new FileReader();
-        r.onload = ev => {
-            const div = document.createElement('div');
-            div.className = 'preview-container';
-            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${j})">✕</button>`;
-            d.appendChild(div);
-        };
-        r.readAsDataURL(f);
-    });
-    if (fixFiles.length === 0) document.getElementById('fixFile').value = '';
-};
+}
 
 function compressImage(file, maxW = 800, q = 0.6) {
     return new Promise(r => {
@@ -424,7 +383,42 @@ function compressImage(file, maxW = 800, q = 0.6) {
     });
 }
 
-window.submitOrder = async function() {
+function previewFix(e) {
+    const files = Array.from(e.target.files);
+    if (files.length > 6) { alert('Tối đa 6 ảnh!'); e.target.value = ''; return; }
+    fixFiles = files;
+    const d = document.getElementById('fixPreview');
+    d.innerHTML = '';
+    files.forEach((f, i) => {
+        const r = new FileReader();
+        r.onload = ev => {
+            const div = document.createElement('div');
+            div.className = 'preview-container';
+            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${i})">✕</button>`;
+            d.appendChild(div);
+        };
+        r.readAsDataURL(f);
+    });
+}
+
+function removeFixImage(i) {
+    fixFiles.splice(i, 1);
+    const d = document.getElementById('fixPreview');
+    d.innerHTML = '';
+    fixFiles.forEach((f, j) => {
+        const r = new FileReader();
+        r.onload = ev => {
+            const div = document.createElement('div');
+            div.className = 'preview-container';
+            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${j})">✕</button>`;
+            d.appendChild(div);
+        };
+        r.readAsDataURL(f);
+    });
+    if (fixFiles.length === 0) document.getElementById('fixFile').value = '';
+}
+
+async function submitOrder() {
     const btn = document.getElementById('btnOrder');
     btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span>';
     const uid = currentUser?.uid || '';
@@ -439,14 +433,15 @@ window.submitOrder = async function() {
     document.getElementById('ordService').value = ''; switchOrdContact('gmail');
     btn.disabled = false; btn.textContent = 'GỬI ĐƠN HÀNG';
     new bootstrap.Toast(document.getElementById('successToast')).show();
-};
+}
 
-window.submitFix = async function() {
+async function submitFix() {
     const btn = document.getElementById('btnFix');
     const notice = document.getElementById('uploadNotice');
     btn.disabled = true;
     btn.innerHTML = '<span class="loading-spinner"></span> Đang gửi...';
     notice.style.display = 'block';
+    
     const uid = currentUser?.uid || '';
     const email = fixContactType==='gmail' ? document.getElementById('fixEmail').value.trim() : '';
     const fb = fixContactType==='facebook' ? document.getElementById('fixFacebook').value.trim() : '';
@@ -454,6 +449,7 @@ window.submitFix = async function() {
     if (fixContactType==='gmail' && !email) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập Gmail!'); }
     if (fixContactType==='facebook' && !fb) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập link FB!'); }
     if (!document.getElementById('fixService').value) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Chọn loại!'); }
+    
     let filesData = [];
     if (fixFiles.length > 0) {
         for (const f of fixFiles) {
@@ -461,7 +457,15 @@ window.submitFix = async function() {
             filesData.push({ fileName: f.name, fileData: b64 });
         }
     }
-    await sendToGAS({ uid, email, facebook: fb, contact: fixContactType, serviceType: document.getElementById('fixService').value, desc: document.getElementById('fixDesc').value.trim(), files: filesData });
+    
+    await sendToGAS({ 
+        uid, email, facebook: fb, 
+        contact: fixContactType, 
+        serviceType: document.getElementById('fixService').value, 
+        desc: document.getElementById('fixDesc').value.trim(), 
+        files: filesData 
+    });
+    
     ['fixEmail','fixFacebook','fixDesc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
     document.getElementById('fixService').value = ''; fixFiles = [];
     document.getElementById('fixPreview').innerHTML = ''; document.getElementById('fixFile').value = '';
@@ -469,7 +473,7 @@ window.submitFix = async function() {
     notice.style.display = 'none';
     btn.disabled = false; btn.innerHTML = 'GỬI YÊU CẦU';
     new bootstrap.Toast(document.getElementById('successToast')).show();
-};
+}
 
 function sendToGAS(data) {
     return fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(()=>{});

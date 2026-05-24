@@ -80,9 +80,33 @@
         .eye-icon.hidden::after { content: ''; position: absolute; width: 24px; height: 2px; background: #ef4444; border-radius: 0; top: 9px; left: -1px; transform: rotate(45deg); }
         
         .upload-notice { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 0.8rem; color: #fbbf24; text-align: center; display: none; }
+
+        /* COOKIE BANNER */
+        .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; border-top: 3px solid #4361ee; padding: 16px 20px; z-index: 10000; display: none; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
+        .cookie-banner .cookie-title { font-weight: 700; color: white; font-size: 0.95rem; margin-bottom: 6px; }
+        .cookie-banner .cookie-text { color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px; line-height: 1.5; }
+        .cookie-banner .cookie-text a { color: #38bdf8; text-decoration: underline; }
+        .cookie-buttons { display: flex; gap: 10px; }
+        .cookie-btn { flex: 1; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; }
+        .cookie-btn-accept { background: #4361ee; color: white; }
+        .cookie-btn-decline { background: rgba(255,255,255,0.1); color: #94a3b8; border: 1px solid rgba(255,255,255,0.2); }
+        .cookie-btn:hover { opacity: 0.85; }
     </style>
 </head>
 <body>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookieBanner">
+    <div class="cookie-title">🍪 Trang web này sử dụng Cookie</div>
+    <div class="cookie-text">
+        Chúng tôi sử dụng cookie để lưu phiên đăng nhập và cải thiện trải nghiệm của bạn. 
+        Xem <a href="https://private-policy-c7g.pages.dev/" target="_blank">Chính sách bảo mật</a> để biết thêm chi tiết.
+    </div>
+    <div class="cookie-buttons">
+        <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()">Từ chối</button>
+        <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()">Đồng ý</button>
+    </div>
+</div>
 
 <div id="authScreen">
     <div class="header"><div class="header-logo"><div class="logo-icon">S</div><h3>SBIDI DEV</h3></div></div>
@@ -201,6 +225,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// 🍪 COOKIE THẬT - KIỂM TRA
+(function() {
+    if (!document.cookie.includes('cookieConsent=')) {
+        document.getElementById('cookieBanner').style.display = 'block';
+    }
+})();
+
+function acceptCookies() {
+    document.cookie = "cookieConsent=accepted; max-age=" + 60*60*24*365 + "; path=/; SameSite=Lax";
+    document.getElementById('cookieBanner').style.display = 'none';
+}
+
+function declineCookies() {
+    document.cookie = "cookieConsent=declined; max-age=" + 60*60*24*30 + "; path=/; SameSite=Lax";
+    document.getElementById('cookieBanner').style.display = 'none';
+}
+
 firebase.initializeApp({
     apiKey: "AIzaSyCzYdbFyj3RYuHiDjKxahrnBTHlvP-gytk",
     authDomain: "sbidi-buy.pages.dev",
@@ -214,7 +255,7 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejwe
 let isRegister = false, fixFiles = [], currentUser = null;
 let ordContactType = 'gmail', fixContactType = 'gmail';
 
-// 👉 TỰ ĐỘNG CHUYỂN SANG CHROME + THÔNG BÁO NẾU HỦY
+// 👉 TỰ ĐỘNG CHUYỂN SANG CHROME NẾU PHÁT HIỆN MXH WEBVIEW
 (function() {
     const ua = navigator.userAgent.toLowerCase();
     const isZalo = ua.includes('zalo');
@@ -223,7 +264,6 @@ let ordContactType = 'gmail', fixContactType = 'gmail';
     const isAndroid = /android/i.test(ua);
     
     if (isZalo || isFB || isTikTok) {
-        // Hiện thông báo + tự chuyển
         document.body.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;color:white;font-family:'Segoe UI',sans-serif;text-align:center;padding:20px;">
                 <div>
@@ -239,7 +279,6 @@ let ordContactType = 'gmail', fixContactType = 'gmail';
             <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         `;
         
-        // Thử chuyển trang
         function doRedirect() {
             if (isAndroid) {
                 window.location.href = 'intent://sbidi-buy.pages.dev#Intent;scheme=https;package=com.android.chrome;end';
@@ -248,16 +287,13 @@ let ordContactType = 'gmail', fixContactType = 'gmail';
             }
         }
         
-        // Chuyển sau 1 giây
         setTimeout(doRedirect, 1000);
         
-        // Nếu sau 3 giây vẫn ở đây → user đã hủy → hiện thông báo
         setTimeout(() => {
             document.getElementById('stayMsg').style.display = 'block';
             document.getElementById('retryBtn').style.display = 'inline-block';
         }, 3000);
         
-        // Hàm thử lại
         window.retryRedirect = function() {
             document.getElementById('stayMsg').style.display = 'none';
             document.getElementById('retryBtn').style.display = 'none';

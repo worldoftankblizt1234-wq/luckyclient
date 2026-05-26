@@ -2,556 +2,206 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>SBIDI DEV - Khách Hàng</title>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST Media Notification - SBIDI</title>
     <style>
-        :root { --primary: #4361ee; --bg: #0f172a; --card: rgba(255,255,255,0.08); --text: #f8fafc; --text2: #94a3b8; --border: rgba(255,255,255,0.12); --input-bg: #1e293b; }
-        * { -webkit-user-select: none !important; user-select: none !important; }
-        input, textarea { -webkit-user-select: text !important; user-select: text !important; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; margin: 0; font-size: 15px; }
-        
-        .header { background: #1e293b; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); }
-        .header-logo { display: flex; align-items: center; gap: 10px; }
-        .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, #38bdf8, #818cf8); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; color: white; font-style: italic; }
-        .header h3 { margin: 0; font-weight: 700; font-size: 1.1rem; }
-        
-        .tab-bar { display: flex; background: #0f172a; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 99; }
-        .tab-item { flex: 1; text-align: center; padding: 12px 4px; color: var(--text2); font-weight: 600; font-size: 0.72rem; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
-        .tab-item.active { color: #38bdf8; border-bottom-color: #38bdf8; background: rgba(56,189,248,0.08); }
-        .tab-item i { display: block; font-size: 1.2rem; margin-bottom: 2px; }
-        .page { display: none; padding: 14px; max-width: 520px; margin: 0 auto; }
-        .page.active { display: block; }
-        
-        .card { background: var(--card); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 14px; }
-        .card-dark { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); }
-        
-        .form-control, .form-select { background: var(--input-bg) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: white !important; border-radius: 12px !important; padding: 14px !important; font-size: 15px !important; }
-        .form-control::placeholder { color: #64748b !important; }
-        .form-control:focus, .form-select:focus { border-color: #38bdf8 !important; box-shadow: 0 0 0 3px rgba(56,189,248,0.25) !important; background: #1e293b !important; }
-        
-        .btn { border-radius: 12px; padding: 14px; font-weight: 700; border: none; font-size: 15px; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(67,97,238,0.4); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-outline { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; }
-        .btn-danger { background: #dc2626; color: white; box-shadow: 0 4px 15px rgba(220,38,38,0.4); }
-        .btn-google { background: white; color: #1e293b; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .btn-google img { width: 20px; height: 20px; }
-        .btn-copy { background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.5); border-radius: 10px; padding: 11px 16px; font-size: 0.9rem; font-weight: 700; cursor: pointer; width: 100%; }
-        .btn-help { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #38bdf8; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
-        
-        .uid-display { background: rgba(56,189,248,0.15); border: 2px dashed rgba(56,189,248,0.6); border-radius: 12px; padding: 18px; text-align: center; font-size: 1.2rem; font-weight: 700; color: #38bdf8; word-break: break-all; }
-        .upload-area { border: 2px dashed rgba(255,255,255,0.3); background: rgba(255,255,255,0.04); border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; }
-        .step-indicator { display: flex; gap: 10px; margin-bottom: 18px; justify-content: center; }
-        .step-dot { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; }
-        .step-dot.done { background: #10b981; color: white; }
-        .step-dot.current { background: var(--primary); color: white; }
-        .greeting { font-size: 0.85rem; color: var(--text2); }
-        .greeting strong { color: #38bdf8; }
-        .preview-container { position: relative; display: inline-block; margin: 4px; }
-        .preview-img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; border: 2px solid rgba(255,255,255,0.2); }
-        .btn-remove-img { position: absolute; top: -6px; right: -6px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; }
-        .guide-box { background: rgba(251,191,36,0.12); border-left: 3px solid #fbbf24; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.85rem; color: #fde68a; }
-        .copy-status { font-size: 0.8rem; margin-top: 4px; color: #38bdf8; }
-        label { font-size: 0.82rem; font-weight: 700; color: var(--text2); margin-bottom: 4px; display: block; }
-        .alert { border-radius: 10px; font-size: 0.85rem; }
-        .pass-rules { font-size: 0.7rem; color: var(--text2); margin-top: 4px; }
-        .pass-rules span { color: #ef4444; }
-        .pass-rules span.valid { color: #10b981; }
-        .highlight-blue { color: #38bdf8; font-weight: 600; }
-        
-        .contact-toggle { display: flex; background: var(--input-bg); border-radius: 12px; overflow: hidden; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.2); }
-        .contact-toggle .toggle-option { flex: 1; text-align: center; padding: 12px; cursor: pointer; font-weight: 700; font-size: 0.85rem; color: var(--text2); transition: 0.2s; }
-        .contact-toggle .toggle-option.active { background: var(--primary); color: white; }
-        .loading-spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .password-wrapper { position: relative; }
-        .password-wrapper .form-control { padding-right: 50px !important; }
-        .toggle-password { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px 12px; z-index: 10; display: flex; align-items: center; justify-content: center; }
-        .eye-icon { width: 22px; height: 22px; position: relative; }
-        .eye-icon::before { content: ''; position: absolute; width: 20px; height: 20px; border: 2px solid #94a3b8; border-radius: 50%; top: 0; left: 0; }
-        .eye-icon::after { content: ''; position: absolute; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%; top: 6px; left: 6px; }
-        .eye-icon.hidden::before { border-color: #ef4444; }
-        .eye-icon.hidden::after { content: ''; position: absolute; width: 24px; height: 2px; background: #ef4444; border-radius: 0; top: 9px; left: -1px; transform: rotate(45deg); }
-        
-        .upload-notice { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 0.8rem; color: #fbbf24; text-align: center; display: none; }
-
-        /* COOKIE BANNER */
-        .cookie-banner { position: fixed; bottom: 0; left: 0; right: 0; background: #1e293b; border-top: 3px solid #4361ee; padding: 16px 20px; z-index: 10000; display: none; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); }
-        .cookie-banner .cookie-title { font-weight: 700; color: white; font-size: 0.95rem; margin-bottom: 6px; }
-        .cookie-banner .cookie-text { color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px; line-height: 1.5; }
-        .cookie-banner .cookie-text a { color: #38bdf8; text-decoration: underline; }
-        .cookie-buttons { display: flex; gap: 10px; }
-        .cookie-btn { flex: 1; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; }
-        .cookie-btn-accept { background: #4361ee; color: white; }
-        .cookie-btn-decline { background: rgba(255,255,255,0.1); color: #94a3b8; border: 1px solid rgba(255,255,255,0.2); }
-        .cookie-btn:hover { opacity: 0.85; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 60px auto;
+            padding: 30px;
+            background: #1a1a2e;
+            color: #eee;
+            text-align: center;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        button {
+            background: linear-gradient(135deg, #c9a962, #a8863a);
+            border: none;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 40px;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.2s ease;
+            color: #1a1a2e;
+        }
+        button:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 15px rgba(201,169,98,0.4);
+        }
+        .status {
+            padding: 15px;
+            background: #16213e;
+            border-radius: 12px;
+            margin: 25px 0;
+            font-size: 14px;
+            border-left: 4px solid #c9a962;
+            text-align: left;
+            word-break: break-all;
+        }
+        .cover-preview {
+            margin: 20px auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #c9a962;
+            background: #0f0f1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cover-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .note {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 25px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            text-align: left;
+        }
+        a {
+            color: #c9a962;
+        }
+        .small-text {
+            font-size: 11px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
 
-<!-- COOKIE BANNER -->
-<div class="cookie-banner" id="cookieBanner">
-    <div class="cookie-title">🍪 Trang web này sử dụng Cookie</div>
-    <div class="cookie-text">
-        Chúng tôi sử dụng cookie để lưu phiên đăng nhập và cải thiện trải nghiệm của bạn. 
-        Xem <a href="https://private-policy-c7g.pages.dev/" target="_blank">Chính sách bảo mật</a> để biết thêm chi tiết.
-    </div>
-    <div class="cookie-buttons">
-        <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()">Từ chối</button>
-        <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()">Đồng ý</button>
-    </div>
-</div>
+    <h1>🎵 SBIDI MUSIC PLAYER</h1>
+    <p style="font-size: 14px;">Nhấn <strong>▶ PLAY</strong> → kiểm tra <strong>khu vực thông báo</strong> (góc phải màn hình)</p>
 
-<div id="authScreen">
-    <div class="header"><div class="header-logo"><div class="logo-icon">S</div><h3>SBIDI DEV</h3></div></div>
-    <div style="max-width:420px;margin:16px auto;padding:14px;">
-        <div class="step-indicator"><div class="step-dot current">1</div><div class="step-dot">2</div><div class="step-dot">3</div></div>
-        <div class="card">
-            <h4 class="fw-bold mb-3 text-center" id="authTitle">ĐĂNG NHẬP</h4>
-            <div id="authError" class="alert alert-danger" style="display:none;"></div>
-            
-            <div id="step1">
-                <button class="btn btn-google w-100 mb-3" onclick="signInWithGoogle()"><img src="https://www.google.com/favicon.ico" alt="G"> Đăng nhập với Google</button>
-                <div style="text-align:center;margin:8px 0;color:var(--text2);">— HOẶC —</div>
-                
-                <div class="mb-3" id="displayNameGroup" style="display:none;"><label>Tên hiển thị</label><input type="text" id="authDisplayName" class="form-control" placeholder="VD: Nguyễn Văn A"></div>
-                <div class="mb-3"><label>Email</label><input type="email" id="authEmail" class="form-control" placeholder="your@email.com"></div>
-                <div class="mb-3">
-                    <label>Mật khẩu</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="authPass" class="form-control" placeholder="Ít nhất 8 ký tự" oninput="checkPassStrength()">
-                        <button type="button" class="toggle-password" onclick="togglePassword()"><div class="eye-icon" id="eyeIcon"></div></button>
-                    </div>
-                    <div class="pass-rules" id="passRules" style="display:none;"><span id="rule1">1 HOA</span> | <span id="rule2">1 thường</span> | <span id="rule3">1 số</span> | <span id="rule4">1 ĐB</span> | <span id="rule5">>=8</span></div>
-                </div>
-                <button class="btn btn-primary w-100 mb-2" id="authBtn" onclick="handleAuth()">ĐĂNG NHẬP</button>
-                <button class="btn btn-outline w-100" onclick="toggleAuth()">Chưa có TK? <strong>Đăng ký</strong></button>
-            </div>
-
-            <div id="step2" style="display:none;">
-                <h5 class="text-center mt-2">Đăng ký thành công!</h5>
-                <div class="guide-box">LƯU UID NÀY!</div>
-                <div class="uid-display mb-3" id="newUid">---</div>
-                <button class="btn-copy" onclick="copyUID()">SAO CHÉP UID</button>
-                <p class="copy-status" id="copyStatus"></p>
-                <button class="btn btn-primary w-100 mt-3" onclick="finishRegister()">VÀO TRANG CHÍNH</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="mainScreen" style="display:none;">
-    <div class="header"><div class="header-logo"><div class="logo-icon">S</div><h3>SBIDI DEV</h3></div><div style="display:flex;align-items:center;gap:8px;"><span class="greeting" id="greetingText"></span><button class="btn btn-outline btn-sm" onclick="logout()" style="padding:5px 10px;font-size:0.8rem;">Thoát</button></div></div>
-    <div class="tab-bar">
-        <div class="tab-item active" onclick="switchTab('home')"><i class="bi bi-house"></i>Trang Chủ</div>
-        <div class="tab-item" onclick="switchTab('orders')"><i class="bi bi-cart"></i>Đặt App</div>
-        <div class="tab-item" onclick="switchTab('fix')"><i class="bi bi-tools"></i>Hỗ Trợ</div>
-        <div class="tab-item" onclick="switchTab('settings')"><i class="bi bi-gear"></i>Cài Đặt</div>
+    <!-- Khung hiển thị thử ảnh bìa -->
+    <div class="cover-preview">
+        <img id="previewImg" src="https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png" alt="Album Art">
     </div>
 
-    <div class="page active" id="page-home"><div class="card card-dark text-center"><h4 id="welcomeMsg"></h4><p style="color:var(--text2);">Chọn tab để đặt app hoặc yêu cầu hỗ trợ</p></div></div>
-
-    <div class="page" id="page-orders">
-        <div class="card card-dark">
-            <h5 style="color:#38bdf8;">ĐẶT APP MỚI</h5>
-            <div class="mb-3"><label>UID (tự động)</label><input type="text" id="ordUid" class="form-control" readonly style="opacity:0.7;"></div>
-            <div class="mb-3">
-                <label>Liên hệ qua</label>
-                <div class="contact-toggle" id="ordContactToggle">
-                    <div class="toggle-option active" onclick="switchOrdContact('gmail')">📧 Gmail</div>
-                    <div class="toggle-option" onclick="switchOrdContact('facebook')">💬 Facebook</div>
-                </div>
-                <div id="ordGmailGroup"><input type="email" id="ordEmail" class="form-control" placeholder="Nhập Gmail"></div>
-                <div id="ordFacebookGroup" style="display:none;"><div style="display:flex;gap:8px;"><input type="text" id="ordFacebook" class="form-control" placeholder="Link Facebook" style="flex:1;"><button type="button" class="btn-help" onclick="showFbGuide()">Cách lấy</button></div></div>
-            </div>
-            <div class="mb-3"><label>Chọn gói</label><select id="ordService" class="form-select"><option value="">-- Chọn --</option><option value="basic">Cơ Bản - 800K</option><option value="business">Doanh Nghiệp - 1.500K</option><option value="premium">Cao Cấp - 2.500K</option><option value="qr">QR - 500K</option></select></div>
-            <div class="mb-3"><label>Mô tả</label><textarea id="ordDesc" class="form-control" rows="3" placeholder="Mô tả yêu cầu..."></textarea></div>
-            <button class="btn btn-primary w-100" id="btnOrder" onclick="submitOrder()">GỬI ĐƠN HÀNG</button>
-        </div>
+    <div>
+        <button id="playBtn">▶ PLAY (Test Notification)</button>
+        <button id="pauseBtn">⏸ PAUSE</button>
     </div>
 
-    <div class="page" id="page-fix">
-        <div class="card card-dark">
-            <h5 style="color:#ef4444;">YÊU CẦU HỖ TRỢ</h5>
-            <div class="mb-3"><label>UID (tự động)</label><input type="text" id="fixUid" class="form-control" readonly style="opacity:0.7;"></div>
-            <div class="mb-3">
-                <label>Liên hệ qua</label>
-                <div class="contact-toggle" id="fixContactToggle">
-                    <div class="toggle-option active" onclick="switchFixContact('gmail')">📧 Gmail</div>
-                    <div class="toggle-option" onclick="switchFixContact('facebook')">💬 Facebook</div>
-                </div>
-                <div id="fixGmailGroup"><input type="email" id="fixEmail" class="form-control" placeholder="Nhập Gmail"></div>
-                <div id="fixFacebookGroup" style="display:none;"><div style="display:flex;gap:8px;"><input type="text" id="fixFacebook" class="form-control" placeholder="Link Facebook" style="flex:1;"><button type="button" class="btn-help" onclick="showFbGuide()">Cách lấy</button></div></div>
-            </div>
-            <div class="mb-3"><label>Loại yêu cầu</label><select id="fixService" class="form-select"><option value="">-- Chọn --</option><option value="fix-small">Sửa nhỏ (50K-150K)</option><option value="fix-medium">Sửa vừa (200K-500K)</option><option value="fix-new">Thêm mới (Từ 500K)</option></select></div>
-            <div class="mb-3"><label>Mô tả</label><textarea id="fixDesc" class="form-control" rows="3" placeholder="Mô tả lỗi..."></textarea></div>
-            <div class="mb-3">
-                <label>Upload ảnh (tối đa 6)</label>
-                <div class="upload-area" onclick="document.getElementById('fixFile').click()">📷 Bấm chọn ảnh</div>
-                <input type="file" id="fixFile" accept="image/*" style="display:none" onchange="previewFix(event)" multiple>
-                <div id="fixPreview" style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:8px;"></div>
-                <div class="upload-notice" id="uploadNotice">⏳ Đang tải ảnh lên, vui lòng đợi trong giây lát...</div>
-            </div>
-            <button class="btn btn-danger w-100" id="btnFix" onclick="submitFix()">GỬI YÊU CẦU</button>
-        </div>
+    <div class="status" id="status">
+        ⚡ Trạng thái: Sẵn sàng. Nhấn Play để bắt đầu.
     </div>
 
-    <div class="page" id="page-settings">
-        <div class="card card-dark text-center">
-            <h5>Thông tin tài khoản</h5>
-            <p style="color:white;" id="settingsDisplayName">---</p>
-            <div class="uid-display mt-2" id="settingsUid">---</div>
-            <button class="btn-copy mt-2" onclick="copyUIDFromSettings()">SAO CHÉP UID</button>
-            <p class="copy-status" id="settingsCopyStatus"></p>
-        </div>
-        <div class="card">
-            <p>📧 Email: <span id="settingsEmail" class="highlight-blue">---</span></p>
-            <p>📅 Ngày tạo: <span id="settingsDate" class="highlight-blue">---</span></p>
-        </div>
-        <button class="btn btn-outline w-100 mt-2" onclick="logout()">Đăng xuất</button>
+    <div class="note">
+        📌 <strong>Link ảnh đang dùng:</strong><br>
+        <a href="https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png" target="_blank">https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png</a><br><br>
+        🎵 <strong>File nhạc:</strong> https://files.catbox.moe/effxlk.mp3<br><br>
+        💡 <strong>Lưu ý:</strong> Nếu ảnh hiển thị bên trên nhưng <strong>không hiện trong Media Notification</strong>, hãy thử dùng ảnh từ <strong>catbox.moe</strong> (nó hoạt động ổn định hơn cho tính năng này).
     </div>
-</div>
+    <div class="small-text">
+        <i class="fas fa-info-circle"></i> Cần bấm Play, sau đó mở khu vực thông báo (góc phải màn hình) để xem ảnh đại diện.
+    </div>
 
-<div class="toast-container">
-    <div id="successToast" class="toast align-items-center text-bg-success border-0"><div class="d-flex"><div class="toast-body">✅ Đã gửi!</div><button class="btn-close btn-close-white m-auto" data-bs-dismiss="toast"></button></div></div>
-    <div id="copyToast" class="toast align-items-center text-bg-info border-0"><div class="d-flex"><div class="toast-body">✅ Đã sao chép UID!</div><button class="btn-close btn-close-white m-auto" data-bs-dismiss="toast"></button></div></div>
-</div>
+    <!-- Audio ẩn -->
+    <audio id="audio" src="https://files.catbox.moe/effxlk.mp3" loop preload="auto"></audio>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-// 🍪 COOKIE THẬT - KIỂM TRA
-(function() {
-    if (!document.cookie.includes('cookieConsent=')) {
-        document.getElementById('cookieBanner').style.display = 'block';
-    }
-})();
+    <script>
+        // Lấy các phần tử DOM
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const statusDiv = document.getElementById('status');
+        const previewImg = document.getElementById('previewImg');
 
-function acceptCookies() {
-    document.cookie = "cookieConsent=accepted; max-age=" + 60*60*24*365 + "; path=/; SameSite=Lax";
-    document.getElementById('cookieBanner').style.display = 'none';
-}
+        // 1. Kiểm tra xem ảnh có tải được trong trang không (để xác minh link)
+        previewImg.onload = () => {
+            statusDiv.innerHTML = '✅ ẢNH TẢI THÀNH CÔNG! (Hiển thị phía trên)<br>🎬 Nhấn PLAY và kiểm tra Media Notification ở góc phải màn hình.';
+            statusDiv.style.borderLeftColor = '#10b981';
+        };
+        previewImg.onerror = () => {
+            statusDiv.innerHTML = '❌ KHÔNG TẢI ĐƯỢC ẢNH!<br>Link ảnh không hoạt động hoặc không đúng định dạng. Hãy kiểm tra lại link.';
+            statusDiv.style.borderLeftColor = '#ef4444';
+        };
 
-function declineCookies() {
-    document.cookie = "cookieConsent=declined; max-age=" + 60*60*24*30 + "; path=/; SameSite=Lax";
-    document.getElementById('cookieBanner').style.display = 'none';
-}
+        // 2. Hàm cập nhật Media Session API (phần quan trọng nhất)
+        function updateMediaSession() {
+            if ('mediaSession' in navigator) {
+                // Tạo metadata với ảnh từ link của bạn
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'SBIDI MUSIC - Demo Cao Cấp',
+                    artist: 'SBIDI DEV TEAM',
+                    album: 'Premium Collection',
+                    artwork: [
+                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '512x512', type: 'image/png' },
+                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '256x256', type: 'image/png' },
+                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '128x128', type: 'image/png' }
+                    ]
+                });
 
-firebase.initializeApp({
-    apiKey: "AIzaSyCzYdbFyj3RYuHiDjKxahrnBTHlvP-gytk",
-    authDomain: "sbidi-buy.pages.dev",
-    projectId: "sbidi-client",
-    storageBucket: "sbidi-client.firebasestorage.app",
-    messagingSenderId: "565423884951",
-    appId: "1:565423884951:web:63ef1db9bd675f249637d2"
-});
-const auth = firebase.auth();
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxEWT0KHefBU8HT_zd5ejweJ6WIqe0aFYIP6ylUseMmHj6ArcajQ7N4hxa8ThUK2ey-1w/exec';
-let isRegister = false, fixFiles = [], currentUser = null;
-let ordContactType = 'gmail', fixContactType = 'gmail';
-
-// 👉 TỰ ĐỘNG CHUYỂN SANG CHROME NẾU PHÁT HIỆN MXH WEBVIEW
-(function() {
-    const ua = navigator.userAgent.toLowerCase();
-    const isZalo = ua.includes('zalo');
-    const isFB = ua.includes('fbav') || ua.includes('fban') || ua.includes('fbios');
-    const isTikTok = ua.includes('tiktok');
-    const isAndroid = /android/i.test(ua);
-    
-    if (isZalo || isFB || isTikTok) {
-        document.body.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a;color:white;font-family:'Segoe UI',sans-serif;text-align:center;padding:20px;">
-                <div>
-                    <div style="font-size:3rem;margin-bottom:12px;">🔄</div>
-                    <h2 style="color:#38bdf8;margin-bottom:8px;font-size:1.3rem;">Để trải nghiệm tốt hơn</h2>
-                    <p style="color:#94a3b8;margin-bottom:10px;font-size:0.9rem;">Trang web sẽ tự động chuyển sang<br><strong style="color:white;">Chrome / Cốc Cốc</strong></p>
-                    <p style="color:#64748b;font-size:0.75rem;">Vui lòng bấm <strong style="color:#fbbf24;">"OK"</strong> hoặc <strong style="color:#fbbf24;">"Mở"</strong>hoặc <strong style="color:#fbbf24;">"tiếp tục"</strong> nếu được hỏi</p>
-                    <div style="margin-top:12px;width:36px;height:36px;border:3px solid rgba(255,255,255,0.2);border-top-color:#38bdf8;border-radius:50%;animation:spin 1s linear infinite;margin:12px auto 0;"></div>
-                    <p id="stayMsg" style="color:#ef4444;margin-top:16px;font-size:0.8rem;display:none;">⚠️ Bạn đã hủy chuyển trang. Để đăng nhập Google, vui lòng mở bằng <strong>Chrome/Cốc Cốc</strong> thủ công.</p>
-                    <button id="retryBtn" onclick="retryRedirect()" style="display:none;margin-top:10px;background:#4361ee;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;">🔄 Thử chuyển lại</button>
-                </div>
-            </div>
-            <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-        `;
-        
-        function doRedirect() {
-            if (isAndroid) {
-                window.location.href = 'intent://sbidi-buy.pages.dev#Intent;scheme=https;package=com.android.chrome;end';
+                // Xử lý nút play/pause từ Media Notification
+                navigator.mediaSession.setActionHandler('play', () => {
+                    audio.play();
+                });
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    audio.pause();
+                });
+                console.log('✅ Media Session đã được cập nhật với ảnh mới');
             } else {
-                window.location.href = 'https://sbidi-buy.pages.dev';
+                console.log('⚠️ Trình duyệt của bạn không hỗ trợ Media Session API');
+                statusDiv.innerHTML = '⚠️ Trình duyệt KHÔNG hỗ trợ Media Session API. Hãy dùng Chrome/Edge mới nhất.';
             }
         }
-        
-        setTimeout(doRedirect, 1000);
-        
+
+        // 3. Sự kiện khi audio play
+        audio.addEventListener('play', () => {
+            updateMediaSession();               // Gửi metadata (kể cả ảnh) lên hệ thống
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            statusDiv.innerHTML = '🎵 ĐANG PHÁT NHẠC!<br>⬇️ Hãy nhìn vào góc phải màn hình (khu vực thông báo) để thấy ẢNH và nút điều khiển!';
+            statusDiv.style.background = '#0a2a1a';
+            statusDiv.style.borderLeftColor = '#10b981';
+        });
+
+        // 4. Sự kiện khi audio pause
+        audio.addEventListener('pause', () => {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'paused';
+            }
+            statusDiv.innerHTML = '⏸ Đã tạm dừng. Nhấn Play để thấy lại thông báo.';
+            statusDiv.style.background = '#16213e';
+            statusDiv.style.borderLeftColor = '#c9a962';
+        });
+
+        // 5. Xử lý khi audio kết thúc (loop)
+        audio.addEventListener('ended', () => {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing'; // vì loop nên vẫn playing
+            }
+        });
+
+        // 6. Gán sự kiện cho nút bấm
+        playBtn.onclick = () => {
+            audio.play().catch(e => {
+                console.error('Lỗi khi phát nhạc:', e);
+                statusDiv.innerHTML = '⚠️ Không thể phát nhạc. Có thể do trình duyệt chặn autoplay.';
+            });
+        };
+        pauseBtn.onclick = () => audio.pause();
+
+        // 7. Thiết lập âm lượng
+        audio.volume = 0.6;
+
+        // 8. Thông báo cho người dùng cách xem Media Notification (tùy hệ điều hành)
         setTimeout(() => {
-            document.getElementById('stayMsg').style.display = 'block';
-            document.getElementById('retryBtn').style.display = 'inline-block';
-        }, 3000);
-        
-        window.retryRedirect = function() {
-            document.getElementById('stayMsg').style.display = 'none';
-            document.getElementById('retryBtn').style.display = 'none';
-            doRedirect();
-            setTimeout(() => {
-                document.getElementById('stayMsg').style.display = 'block';
-                document.getElementById('retryBtn').style.display = 'inline-block';
-            }, 3000);
-        };
-    }
-})();
-
-function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    auth.signInWithPopup(provider).catch(error => {
-        if (error.code === 'auth/popup-closed-by-user') return;
-        showError('Đăng nhập Google thất bại!');
-    });
-}
-
-function togglePassword() {
-    const p = document.getElementById('authPass');
-    const e = document.getElementById('eyeIcon');
-    if (p.type === 'password') { p.type = 'text'; e.classList.add('hidden'); }
-    else { p.type = 'password'; e.classList.remove('hidden'); }
-}
-
-function showFbGuide() { alert('Vào Facebook → Trang cá nhân → Copy link'); }
-
-function switchOrdContact(t) {
-    ordContactType = t;
-    document.getElementById('ordGmailGroup').style.display = t==='gmail'?'block':'none';
-    document.getElementById('ordFacebookGroup').style.display = t==='facebook'?'block':'none';
-    document.querySelectorAll('#ordContactToggle .toggle-option').forEach((e,i)=>e.classList.toggle('active',(i===0&&t==='gmail')||(i===1&&t==='facebook')));
-}
-
-function switchFixContact(t) {
-    fixContactType = t;
-    document.getElementById('fixGmailGroup').style.display = t==='gmail'?'block':'none';
-    document.getElementById('fixFacebookGroup').style.display = t==='facebook'?'block':'none';
-    document.querySelectorAll('#fixContactToggle .toggle-option').forEach((e,i)=>e.classList.toggle('active',(i===0&&t==='gmail')||(i===1&&t==='facebook')));
-}
-
-function checkPassStrength() {
-    const pass = document.getElementById('authPass').value;
-    const rules = document.getElementById('passRules');
-    if (!isRegister) { rules.style.display = 'none'; return true; }
-    rules.style.display = 'block';
-    ['rule1','rule2','rule3','rule4','rule5'].forEach((id,i)=>{
-        const tests = [/[A-Z]/,/[a-z]/,/[0-9]/,/[!@#$%^&*(),.?":{}|<>]/,/.{8,}/];
-        document.getElementById(id).className = tests[i].test(pass) ? 'valid' : '';
-    });
-}
-
-function validatePassword(p) {
-    if (p.length<8) return 'Mật khẩu >= 8 ký tự!';
-    if (!/[A-Z]/.test(p)) return 'Cần 1 chữ HOA!';
-    if (!/[a-z]/.test(p)) return 'Cần 1 chữ thường!';
-    if (!/[0-9]/.test(p)) return 'Cần 1 số!';
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(p)) return 'Cần 1 ký tự đặc biệt!';
-    return null;
-}
-
-function toggleAuth() {
-    isRegister = !isRegister;
-    document.getElementById('authTitle').textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
-    document.getElementById('authBtn').textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
-    document.getElementById('displayNameGroup').style.display = isRegister ? 'block' : 'none';
-    document.getElementById('step2').style.display = 'none'; document.getElementById('step1').style.display = 'block';
-    document.getElementById('passRules').style.display = 'none';
-    document.getElementById('authError').style.display = 'none';
-    document.getElementById('authPass').type = 'password';
-    document.getElementById('eyeIcon').classList.remove('hidden');
-}
-
-async function handleAuth() {
-    const email = document.getElementById('authEmail').value.trim();
-    const pass = document.getElementById('authPass').value.trim();
-    const name = document.getElementById('authDisplayName')?.value.trim();
-    if (!email) return showError('Nhập Email!');
-    if (!pass) return showError('Nhập Mật khẩu!');
-    const btn = document.getElementById('authBtn'); btn.disabled = true; btn.textContent = 'Đang xử lý...';
-    try {
-        if (isRegister) {
-            if (!name) { showError('Nhập Tên!'); btn.disabled = false; btn.textContent = 'ĐĂNG KÝ'; return; }
-            const e = validatePassword(pass); if (e) { showError(e); btn.disabled = false; btn.textContent = 'ĐĂNG KÝ'; return; }
-            const cred = await auth.createUserWithEmailAndPassword(email, pass);
-            await cred.user.updateProfile({ displayName: name });
-            document.getElementById('newUid').textContent = cred.user.uid;
-            document.getElementById('step1').style.display = 'none'; document.getElementById('step2').style.display = 'block';
-        } else { await auth.signInWithEmailAndPassword(email, pass); }
-    } catch(e) {
-        if (e.code==='auth/user-not-found'||e.code==='auth/wrong-password'||e.code==='auth/invalid-credential') showError('Sai tài khoản hoặc mật khẩu!');
-        else if (e.code==='auth/email-already-in-use') showError('Email đã được đăng ký!');
-        else if (e.code==='auth/invalid-email') showError('Email không hợp lệ!');
-        else if (e.code==='auth/too-many-requests') showError('Thử quá nhiều lần!');
-    }
-    btn.disabled = false; btn.textContent = isRegister ? 'ĐĂNG KÝ' : 'ĐĂNG NHẬP';
-}
-
-function showError(m) { const e = document.getElementById('authError'); e.textContent = m; e.style.display = 'block'; }
-function finishRegister() { document.getElementById('authScreen').style.display = 'none'; document.getElementById('mainScreen').style.display = 'block'; showGreeting(); }
-
-function copyText(t) { 
-    if (navigator.clipboard) { navigator.clipboard.writeText(t); return true; }
-    const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); return true; } catch(e) {} finally { document.body.removeChild(ta); }
-}
-function copyUID() { copyText(document.getElementById('newUid').textContent); new bootstrap.Toast(document.getElementById('copyToast')).show(); }
-function copyUIDFromSettings() { copyText(currentUser?.uid||''); new bootstrap.Toast(document.getElementById('copyToast')).show(); }
-
-auth.onAuthStateChanged(u => {
-    if (u) {
-        currentUser = u;
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('mainScreen').style.display = 'block';
-        document.getElementById('settingsUid').textContent = u.uid;
-        document.getElementById('settingsEmail').textContent = u.email;
-        document.getElementById('settingsDisplayName').textContent = u.displayName || u.email?.split('@')[0];
-        document.getElementById('settingsDate').textContent = new Date(u.metadata.creationTime).toLocaleDateString('vi-VN');
-        document.getElementById('ordUid').value = u.uid;
-        document.getElementById('fixUid').value = u.uid;
-        showGreeting();
-    } else {
-        document.getElementById('authScreen').style.display = 'block';
-        document.getElementById('mainScreen').style.display = 'none';
-    }
-});
-
-function showGreeting() {
-    const h = new Date().getHours();
-    const g = h<6?'tối':h<12?'sáng':h<17?'trưa':'tối';
-    const n = currentUser?.displayName || currentUser?.email?.split('@')[0] || 'bạn';
-    document.getElementById('greetingText').innerHTML = `Chào buổi ${g}, <strong>${n}</strong>`;
-    document.getElementById('welcomeMsg').textContent = `Chào buổi ${g}! Bạn cần gì hôm nay?`;
-}
-
-function logout() { auth.signOut(); }
-
-function switchTab(t) {
-    document.querySelectorAll('.tab-item').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-    document.querySelector(`.tab-item[onclick="switchTab('${t}')"]`).classList.add('active');
-    document.getElementById('page-'+t).classList.add('active');
-    if (t==='orders') document.getElementById('ordUid').value = currentUser?.uid || '';
-    if (t==='fix') document.getElementById('fixUid').value = currentUser?.uid || '';
-}
-
-function compressImage(file, maxW = 800, q = 0.6) {
-    return new Promise(r => {
-        const reader = new FileReader();
-        reader.onload = e => {
-            const img = new Image();
-            img.onload = () => {
-                const c = document.createElement('canvas');
-                let w = img.width, h = img.height;
-                if (w > maxW) { h = (h*maxW)/w; w = maxW; }
-                c.width = w; c.height = h;
-                c.getContext('2d').drawImage(img, 0, 0, w, h);
-                c.toBlob(b => {
-                    const r2 = new FileReader();
-                    r2.onload = () => r(r2.result.split(',')[1]);
-                    r2.readAsDataURL(b);
-                }, 'image/jpeg', q);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-function previewFix(e) {
-    const files = Array.from(e.target.files);
-    if (files.length > 6) { alert('Tối đa 6 ảnh!'); e.target.value = ''; return; }
-    fixFiles = files;
-    const d = document.getElementById('fixPreview');
-    d.innerHTML = '';
-    files.forEach((f, i) => {
-        const r = new FileReader();
-        r.onload = ev => {
-            const div = document.createElement('div');
-            div.className = 'preview-container';
-            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${i})">✕</button>`;
-            d.appendChild(div);
-        };
-        r.readAsDataURL(f);
-    });
-}
-
-function removeFixImage(i) {
-    fixFiles.splice(i, 1);
-    const d = document.getElementById('fixPreview');
-    d.innerHTML = '';
-    fixFiles.forEach((f, j) => {
-        const r = new FileReader();
-        r.onload = ev => {
-            const div = document.createElement('div');
-            div.className = 'preview-container';
-            div.innerHTML = `<img src="${ev.target.result}" class="preview-img"><button class="btn-remove-img" onclick="removeFixImage(${j})">✕</button>`;
-            d.appendChild(div);
-        };
-        r.readAsDataURL(f);
-    });
-    if (fixFiles.length === 0) document.getElementById('fixFile').value = '';
-}
-
-async function submitOrder() {
-    const btn = document.getElementById('btnOrder');
-    btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span>';
-    const uid = currentUser?.uid || '';
-    const email = ordContactType==='gmail' ? document.getElementById('ordEmail').value.trim() : '';
-    const fb = ordContactType==='facebook' ? document.getElementById('ordFacebook').value.trim() : '';
-    if (!uid) { btn.disabled = false; btn.textContent = 'GỬI'; return alert('Cần đăng nhập!'); }
-    if (ordContactType==='gmail' && !email) { btn.disabled = false; btn.textContent = 'GỬI'; return alert('Nhập Gmail!'); }
-    if (ordContactType==='facebook' && !fb) { btn.disabled = false; btn.textContent = 'GỬI'; return alert('Nhập link FB!'); }
-    if (!document.getElementById('ordService').value) { btn.disabled = false; btn.textContent = 'GỬI'; return alert('Chọn gói!'); }
-    await sendToGAS({ uid, email, facebook: fb, contact: ordContactType, serviceType: document.getElementById('ordService').value, desc: document.getElementById('ordDesc').value.trim() });
-    ['ordEmail','ordFacebook','ordDesc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-    document.getElementById('ordService').value = ''; switchOrdContact('gmail');
-    btn.disabled = false; btn.textContent = 'GỬI ĐƠN HÀNG';
-    new bootstrap.Toast(document.getElementById('successToast')).show();
-}
-
-async function submitFix() {
-    const btn = document.getElementById('btnFix');
-    const notice = document.getElementById('uploadNotice');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="loading-spinner"></span> Đang gửi...';
-    notice.style.display = 'block';
-    const uid = currentUser?.uid || '';
-    const email = fixContactType==='gmail' ? document.getElementById('fixEmail').value.trim() : '';
-    const fb = fixContactType==='facebook' ? document.getElementById('fixFacebook').value.trim() : '';
-    if (!uid) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Cần đăng nhập!'); }
-    if (fixContactType==='gmail' && !email) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập Gmail!'); }
-    if (fixContactType==='facebook' && !fb) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Nhập link FB!'); }
-    if (!document.getElementById('fixService').value) { btn.disabled = false; btn.innerHTML = 'GỬI'; notice.style.display = 'none'; return alert('Chọn loại!'); }
-    let filesData = [];
-    if (fixFiles.length > 0) {
-        for (const f of fixFiles) {
-            const b64 = await compressImage(f, 800, 0.6);
-            filesData.push({ fileName: f.name, fileData: b64 });
-        }
-    }
-    await sendToGAS({ uid, email, facebook: fb, contact: fixContactType, serviceType: document.getElementById('fixService').value, desc: document.getElementById('fixDesc').value.trim(), files: filesData });
-    ['fixEmail','fixFacebook','fixDesc'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-    document.getElementById('fixService').value = ''; fixFiles = [];
-    document.getElementById('fixPreview').innerHTML = ''; document.getElementById('fixFile').value = '';
-    switchFixContact('gmail');
-    notice.style.display = 'none';
-    btn.disabled = false; btn.innerHTML = 'GỬI YÊU CẦU';
-    new bootstrap.Toast(document.getElementById('successToast')).show();
-}
-
-function sendToGAS(data) {
-    return fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).catch(()=>{});
-}
-
-document.addEventListener('contextmenu', e => e.preventDefault());
-</script>
+            if (statusDiv.innerHTML.includes('✅')) {
+                statusDiv.innerHTML = statusDiv.innerHTML + '<br><br>📱 <strong>Cách xem:</strong> Sau khi nhấn Play, hãy mở "Trung tâm thông báo" (Windows: góc phải dưới cùng; macOS: góc phải trên cùng).';
+            }
+        }, 1000);
+    </script>
 </body>
 </html>

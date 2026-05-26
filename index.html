@@ -3,205 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TEST Media Notification - SBIDI</title>
+    <title>SBIDI DEV - Media Session Test</title>
     <style>
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 600px;
-            margin: 60px auto;
-            padding: 30px;
-            background: #1a1a2e;
-            color: #eee;
-            text-align: center;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        button {
-            background: linear-gradient(135deg, #c9a962, #a8863a);
-            border: none;
-            padding: 12px 28px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 40px;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.2s ease;
-            color: #1a1a2e;
-        }
-        button:hover {
-            transform: scale(1.03);
-            box-shadow: 0 5px 15px rgba(201,169,98,0.4);
-        }
-        .status {
-            padding: 15px;
-            background: #16213e;
-            border-radius: 12px;
-            margin: 25px 0;
-            font-size: 14px;
-            border-left: 4px solid #c9a962;
-            text-align: left;
-            word-break: break-all;
-        }
-        .cover-preview {
-            margin: 20px auto;
-            width: 180px;
-            height: 180px;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid #c9a962;
-            background: #0f0f1a;
+            background: #030712;
+            color: white;
+            font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
         }
-        .cover-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+        .album-art {
+            width: 200px;
+            height: 200px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 30px rgba(56,189,248,0.3);
+            animation: spin 8s linear infinite;
+            animation-play-state: paused;
         }
-        .note {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 25px;
-            padding: 10px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            text-align: left;
+        .album-art.playing { animation-play-state: running; }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-        a {
-            color: #c9a962;
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
         }
-        .small-text {
-            font-size: 11px;
-            margin-top: 15px;
+        button {
+            width: 50px; height: 50px; border-radius: 50%;
+            border: none; cursor: pointer; font-size: 1.2rem;
+            background: #38bdf8; color: white;
+            box-shadow: 0 0 15px rgba(56,189,248,0.4);
         }
+        button:hover { transform: scale(1.1); }
+        .info { margin-top: 15px; color: #94a3b8; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
-    <h1>🎵 SBIDI MUSIC PLAYER</h1>
-    <p style="font-size: 14px;">Nhấn <strong>▶ PLAY</strong> → kiểm tra <strong>khu vực thông báo</strong> (góc phải màn hình)</p>
+    <h1 style="color: #38bdf8;">🎵 TEST MEDIA SESSION</h1>
+    <p style="color: #94a3b8; font-size: 0.85rem;">Kéo thanh thông báo xuống để xem ảnh bìa!</p>
 
-    <!-- Khung hiển thị thử ảnh bìa -->
-    <div class="cover-preview">
-        <img id="previewImg" src="https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png" alt="Album Art">
+    <!-- Ảnh bìa album -->
+    <img id="albumArt" class="album-art" 
+         src="https://picsum.photos/seed/music/400/400" 
+         alt="Album Art"
+         onerror="this.src='https://placehold.co/400x400/030712/38bdf8?text=SBIDI+MUSIC'">
+
+    <h2 id="trackTitle" style="margin-top: 15px;">SBIDI DEV Theme</h2>
+    <p id="trackArtist" style="color: #94a3b8;">SCM Team</p>
+
+    <div class="controls">
+        <button onclick="prevTrack()">⏮</button>
+        <button id="playBtn" onclick="togglePlay()">▶</button>
+        <button onclick="nextTrack()">⏭</button>
     </div>
 
-    <div>
-        <button id="playBtn">▶ PLAY (Test Notification)</button>
-        <button id="pauseBtn">⏸ PAUSE</button>
-    </div>
+    <p class="info" id="status">Chưa phát nhạc</p>
+    <p class="info">📱 Kéo Notification xuống để thấy ảnh bìa!</p>
 
-    <div class="status" id="status">
-        ⚡ Trạng thái: Sẵn sàng. Nhấn Play để bắt đầu.
-    </div>
+    <audio id="bgMusic" loop>
+        <source src="https://files.catbox.moe/effxlk.mp3" type="audio/mpeg">
+    </audio>
 
-    <div class="note">
-        📌 <strong>Link ảnh đang dùng:</strong><br>
-        <a href="https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png" target="_blank">https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png</a><br><br>
-        🎵 <strong>File nhạc:</strong> https://files.catbox.moe/effxlk.mp3<br><br>
-        💡 <strong>Lưu ý:</strong> Nếu ảnh hiển thị bên trên nhưng <strong>không hiện trong Media Notification</strong>, hãy thử dùng ảnh từ <strong>catbox.moe</strong> (nó hoạt động ổn định hơn cho tính năng này).
-    </div>
-    <div class="small-text">
-        <i class="fas fa-info-circle"></i> Cần bấm Play, sau đó mở khu vực thông báo (góc phải màn hình) để xem ảnh đại diện.
-    </div>
+<script>
+const bgMusic = document.getElementById('bgMusic');
+const albumArt = document.getElementById('albumArt');
+const trackTitle = document.getElementById('trackTitle');
+const trackArtist = document.getElementById('trackArtist');
+const playBtn = document.getElementById('playBtn');
+const statusEl = document.getElementById('status');
+let isPlaying = false;
 
-    <!-- Audio ẩn -->
-    <audio id="audio" src="https://files.catbox.moe/effxlk.mp3" loop preload="auto"></audio>
+// === MEDIA SESSION API ===
+// Đây là phần quan trọng để hiện ảnh bìa trên notification!
+if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'SBIDI DEV Theme',
+        artist: 'SCM Team',
+        album: 'SBIDI Background Music',
+        artwork: [
+            { src: 'https://picsum.photos/seed/music/96x96',   sizes: '96x96',   type: 'image/jpg' },
+            { src: 'https://picsum.photos/seed/music/128x128', sizes: '128x128', type: 'image/jpg' },
+            { src: 'https://picsum.photos/seed/music/192x192', sizes: '192x192', type: 'image/jpg' },
+            { src: 'https://picsum.photos/seed/music/256x256', sizes: '256x256', type: 'image/jpg' },
+            { src: 'https://picsum.photos/seed/music/384x384', sizes: '384x384', type: 'image/jpg' },
+            { src: 'https://picsum.photos/seed/music/512x512', sizes: '512x512', type: 'image/jpg' },
+        ]
+    });
 
-    <script>
-        // Lấy các phần tử DOM
-        const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const statusDiv = document.getElementById('status');
-        const previewImg = document.getElementById('previewImg');
+    // Điều khiển từ thanh thông báo
+    navigator.mediaSession.setActionHandler('play', () => { playMusic(); });
+    navigator.mediaSession.setActionHandler('pause', () => { pauseMusic(); });
+    navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
+    navigator.mediaSession.setActionHandler('stop', () => { pauseMusic(); });
+}
 
-        // 1. Kiểm tra xem ảnh có tải được trong trang không (để xác minh link)
-        previewImg.onload = () => {
-            statusDiv.innerHTML = '✅ ẢNH TẢI THÀNH CÔNG! (Hiển thị phía trên)<br>🎬 Nhấn PLAY và kiểm tra Media Notification ở góc phải màn hình.';
-            statusDiv.style.borderLeftColor = '#10b981';
-        };
-        previewImg.onerror = () => {
-            statusDiv.innerHTML = '❌ KHÔNG TẢI ĐƯỢC ẢNH!<br>Link ảnh không hoạt động hoặc không đúng định dạng. Hãy kiểm tra lại link.';
-            statusDiv.style.borderLeftColor = '#ef4444';
-        };
-
-        // 2. Hàm cập nhật Media Session API (phần quan trọng nhất)
-        function updateMediaSession() {
-            if ('mediaSession' in navigator) {
-                // Tạo metadata với ảnh từ link của bạn
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: 'SBIDI MUSIC - Demo Cao Cấp',
-                    artist: 'SBIDI DEV TEAM',
-                    album: 'Premium Collection',
-                    artwork: [
-                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '512x512', type: 'image/png' },
-                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '256x256', type: 'image/png' },
-                        { src: 'https://i.postimg.cc/Wzpc9Y7T/Gemini-Generated-Image-ui9921ui9921ui99.png', sizes: '128x128', type: 'image/png' }
-                    ]
-                });
-
-                // Xử lý nút play/pause từ Media Notification
-                navigator.mediaSession.setActionHandler('play', () => {
-                    audio.play();
-                });
-                navigator.mediaSession.setActionHandler('pause', () => {
-                    audio.pause();
-                });
-                console.log('✅ Media Session đã được cập nhật với ảnh mới');
-            } else {
-                console.log('⚠️ Trình duyệt của bạn không hỗ trợ Media Session API');
-                statusDiv.innerHTML = '⚠️ Trình duyệt KHÔNG hỗ trợ Media Session API. Hãy dùng Chrome/Edge mới nhất.';
-            }
+function playMusic() {
+    bgMusic.play().then(() => {
+        isPlaying = true;
+        playBtn.textContent = '⏸';
+        albumArt.classList.add('playing');
+        statusEl.textContent = '🎵 Đang phát - Kéo Notification xuống!';
+        
+        // Cập nhật Media Session
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
         }
+    }).catch(err => {
+        console.log("Lỗi phát nhạc:", err);
+        statusEl.textContent = '❌ Lỗi phát nhạc! Click để thử lại.';
+    });
+}
 
-        // 3. Sự kiện khi audio play
-        audio.addEventListener('play', () => {
-            updateMediaSession();               // Gửi metadata (kể cả ảnh) lên hệ thống
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-            statusDiv.innerHTML = '🎵 ĐANG PHÁT NHẠC!<br>⬇️ Hãy nhìn vào góc phải màn hình (khu vực thông báo) để thấy ẢNH và nút điều khiển!';
-            statusDiv.style.background = '#0a2a1a';
-            statusDiv.style.borderLeftColor = '#10b981';
+function pauseMusic() {
+    bgMusic.pause();
+    isPlaying = false;
+    playBtn.textContent = '▶';
+    albumArt.classList.remove('playing');
+    statusEl.textContent = '⏸ Đã tạm dừng';
+    
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
+}
+
+function togglePlay() {
+    isPlaying ? pauseMusic() : playMusic();
+}
+
+function prevTrack() {
+    bgMusic.currentTime = 0;
+    statusEl.textContent = '⏮ Quay lại đầu bài';
+    if (!isPlaying) playMusic();
+}
+
+function nextTrack() {
+    bgMusic.currentTime = 0;
+    statusEl.textContent = '⏭ Phát lại từ đầu';
+    if (!isPlaying) playMusic();
+}
+
+// Tự động phát khi click lần đầu
+document.addEventListener('click', function init() {
+    if (bgMusic.paused && !isPlaying) {
+        playMusic();
+    }
+}, { once: true });
+
+// Cập nhật vị trí thanh seekbar trên notification
+bgMusic.addEventListener('timeupdate', () => {
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+        navigator.mediaSession.setPositionState({
+            duration: bgMusic.duration || 0,
+            playbackRate: bgMusic.playbackRate || 1,
+            position: bgMusic.currentTime || 0,
         });
-
-        // 4. Sự kiện khi audio pause
-        audio.addEventListener('pause', () => {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'paused';
-            }
-            statusDiv.innerHTML = '⏸ Đã tạm dừng. Nhấn Play để thấy lại thông báo.';
-            statusDiv.style.background = '#16213e';
-            statusDiv.style.borderLeftColor = '#c9a962';
-        });
-
-        // 5. Xử lý khi audio kết thúc (loop)
-        audio.addEventListener('ended', () => {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing'; // vì loop nên vẫn playing
-            }
-        });
-
-        // 6. Gán sự kiện cho nút bấm
-        playBtn.onclick = () => {
-            audio.play().catch(e => {
-                console.error('Lỗi khi phát nhạc:', e);
-                statusDiv.innerHTML = '⚠️ Không thể phát nhạc. Có thể do trình duyệt chặn autoplay.';
-            });
-        };
-        pauseBtn.onclick = () => audio.pause();
-
-        // 7. Thiết lập âm lượng
-        audio.volume = 0.6;
-
-        // 8. Thông báo cho người dùng cách xem Media Notification (tùy hệ điều hành)
-        setTimeout(() => {
-            if (statusDiv.innerHTML.includes('✅')) {
-                statusDiv.innerHTML = statusDiv.innerHTML + '<br><br>📱 <strong>Cách xem:</strong> Sau khi nhấn Play, hãy mở "Trung tâm thông báo" (Windows: góc phải dưới cùng; macOS: góc phải trên cùng).';
-            }
-        }, 1000);
-    </script>
+    }
+});
+</script>
 </body>
 </html>

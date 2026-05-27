@@ -2,197 +2,223 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Player - Media Session Demo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Test Media Session - Ảnh Dropbox</title>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
-        .bg-gradient { background: linear-gradient(135deg, #1e1e2f 0%, #2d3436 100%); }
+        body {
+            font-family: system-ui;
+            background: #0a0a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #1e1e2a;
+            padding: 24px;
+            border-radius: 32px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        img {
+            width: 100%;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            aspect-ratio: 1;
+            object-fit: cover;
+        }
+        h2 { color: white; font-size: 1.5rem; margin-bottom: 4px; }
+        .artist { color: #aaa; margin-bottom: 24px; }
+        button {
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 60px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .status {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #8affc2;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 20px;
+        }
+        .debug {
+            font-family: monospace;
+            font-size: 10px;
+            margin-top: 12px;
+            color: #888;
+            word-break: break-all;
+        }
+        .note {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 15px;
+            border-top: 1px solid #ffffff20;
+            padding-top: 12px;
+        }
     </style>
 </head>
-<body class="bg-gradient min-h-screen flex items-center justify-center p-4">
-
-<div class="glass w-full max-w-sm rounded-3xl p-6 text-white shadow-2xl">
-    <!-- Album Art -->
-    <div class="relative aspect-square w-full mb-6 overflow-hidden rounded-2xl shadow-lg border border-gray-700">
-        <img id="album-art" src="Gemini_Generated_Image_ui9921ui9921ui99.jpg" alt="Album Cover" class="w-full h-full object-cover">
-    </div>
-
-    <!-- Info -->
-    <div class="text-center mb-6">
-        <h2 id="song-title" class="text-2xl font-bold truncate">Chill Lo-fi Vibes</h2>
-        <p id="artist-name" class="text-gray-400">Gemini Artist</p>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="mb-6">
-        <input type="range" id="progress" value="0" step="1" class="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-purple-500">
-        <div class="flex justify-between text-xs mt-2 text-gray-400">
-            <span id="current-time">0:00</span>
-            <span id="duration">0:00</span>
-        </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="flex items-center justify-around">
-        <button class="p-2 text-gray-400 hover:text-white transition">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M8.445 14.832A1 1 0 0010 14v-2.798l5.445 3.63A1 1 0 0017 14V6a1 1 0 00-1.555-.832L10 8.798V6a1 1 0 00-1.555-.832l-6 4a1 1 0 000 1.664l6 4z"></path></svg>
-        </button>
-        
-        <button id="play-pause" class="w-16 h-16 bg-purple-600 hover:bg-purple-700 rounded-full flex items-center justify-center shadow-lg transition transform hover:scale-105 active:scale-95">
-            <svg id="play-icon" class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-            <svg id="pause-icon" class="hidden w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-        </button>
-
-        <button class="p-2 text-gray-400 hover:text-white transition">
-            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M4.555 5.168A1 1 0 003 6v8a1 1 0 001.555.832L10 11.202V14a1 1 0 001.555.832l6-4a1 1 0 000-1.664l-6-4A1 1 0 0010 6v2.798l-5.445-3.63z"></path></svg>
-        </button>
+<body>
+<div class="card">
+    <!-- ẢNH TỪ DROPBOX (ĐÃ SỬA LINK) -->
+    <img id="albumArt" src="https://dl.dropboxusercontent.com/scl/fi/arjfo94n5z34ualyegemz/Gemini_Generated_Image_ui9921ui9921ui99.jpg?rlkey=ovpul608g6tvzdkcnk7rtb9eq" alt="artwork">
+    <h2>🎵 Lofi Girl - Chill Beats</h2>
+    <div class="artist">🎤 Lofi Music Library</div>
+    
+    <button id="playBtn">▶️ PHÁT NHẠC</button>
+    
+    <div class="status" id="statusMsg">⚡ Bấm Play rồi vuốt Control Center xuống</div>
+    <div class="debug" id="debugMsg">🔍 Đang khởi tạo...</div>
+    <div class="note">
+        📱 <strong>CÁCH TEST:</strong> Bấm Play → Vuốt Control Center (từ đỉnh màn hình xuống) → Kiểm tra ảnh.
     </div>
 </div>
 
-<!-- Audio Element -->
-<audio id="audio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-
 <script>
-    const audio = document.getElementById('audio');
-    const playPauseBtn = document.getElementById('play-pause');
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
-    const progress = document.getElementById('progress');
-    const currentTimeEl = document.getElementById('current-time');
-    const durationEl = document.getElementById('duration');
+    // ========== LINK MP3 (DROPBOX ĐÃ SỬA) ==========
+    const AUDIO_URL = 'https://dl.dropboxusercontent.com/scl/fi/6did53gw48axz2ut5xuo5/lofi_music_library-lofi-girl-chill-lofi-beats-lofi-ambient-461871.mp3?rlkey=pvqx1t607s5dtdb3xlu7u9kax';
+    
+    // ẢNH TỪ DROPBOX (ĐÃ SỬA) - trùng với src trong thẻ img
+    const ARTWORK_URL = 'https://dl.dropboxusercontent.com/scl/fi/arjfo94n5z34ualyegemz/Gemini_Generated_Image_ui9921ui9921ui99.jpg?rlkey=ovpul608g6tvzdkcnk7rtb9eq';
+    
+    const SONG_TITLE = 'Lofi Chill Beats';
+    const ARTIST_NAME = 'Lofi Music Library';
+    // ===============================================
 
-    // Biến toàn cục lưu trữ Promise phát nhạc để kiểm soát bất đồng bộ
-    let playPromise = null;
-
-    // Thông tin Metadata để hiện trên thông báo Google
-    const songData = {
-        title: 'SBIDI Solutions',
-        artist: 'Merchant Services',
-        album: 'Corporate Collection',
-        artwork: 'Gemini_Generated_Image_ui9921ui9921ui99.jpg'
-    };
-
-    // Hàm chuyển đổi đường dẫn tương đối thành URL tuyệt đối an toàn
-    function getAbsoluteUrl(path) {
-        try {
-            if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
-                return path;
-            }
-            const base = window.location.href.startsWith('blob:') ? window.location.origin : window.location.href;
-            return new URL(path, base).href;
-        } catch (e) {
-            console.error('Lỗi khi phân giải URL ảnh:', e);
-            return path;
-        }
+    const audio = new Audio(AUDIO_URL);
+    audio.preload = 'auto';
+    audio.volume = 0.6;
+    
+    let isPlaying = false;
+    const playBtn = document.getElementById('playBtn');
+    const statusDiv = document.getElementById('statusMsg');
+    const debugSpan = document.getElementById('debugMsg');
+    const albumArtImg = document.getElementById('albumArt');
+    
+    function log(msg, isError = false) {
+        const time = new Date().toLocaleTimeString();
+        debugSpan.innerHTML = `📡 ${time}: ${msg}`;
+        console.log(msg);
     }
-
-    function updateMediaMetadata() {
-        if ('mediaSession' in navigator) {
-            const absoluteArtworkUrl = getAbsoluteUrl(songData.artwork);
-            
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: songData.title,
-                artist: songData.artist,
-                album: songData.album,
-                artwork: [
-                    { src: absoluteArtworkUrl, sizes: '96x96',   type: 'image/jpeg' },
-                    { src: absoluteArtworkUrl, sizes: '128x128', type: 'image/jpeg' },
-                    { src: absoluteArtworkUrl, sizes: '192x192', type: 'image/jpeg' },
-                    { src: absoluteArtworkUrl, sizes: '256x256', type: 'image/jpeg' },
-                    { src: absoluteArtworkUrl, sizes: '384x384', type: 'image/jpeg' },
-                    { src: absoluteArtworkUrl, sizes: '512x512', type: 'image/jpeg' },
-                ]
-            });
-
-            // Lắng nghe sự kiện từ thanh thông báo
-            navigator.mediaSession.setActionHandler('play', () => togglePlay());
-            navigator.mediaSession.setActionHandler('pause', () => togglePlay());
-            navigator.mediaSession.setActionHandler('seekbackward', () => { audio.currentTime -= 10; });
-            navigator.mediaSession.setActionHandler('seekforward', () => { audio.currentTime += 10; });
+    
+    // ========== MEDIA SESSION API (HIỂN THỊ ẢNH TRÊN MÀN HÌNH KHÓA) ==========
+    function updateMediaSession() {
+        if (!('mediaSession' in navigator)) {
+            log('❌ Trình duyệt KHÔNG hỗ trợ Media Session API');
+            statusDiv.innerHTML = '⚠️ Dùng Chrome/Safari mới nhất trên điện thoại.';
+            return false;
         }
-    }
-
-    function togglePlay() {
-        if (audio.paused) {
-            playIcon.classList.add('hidden');
-            pauseIcon.classList.remove('hidden');
-            
-            // Gán playPromise và xử lý bất đồng bộ
-            playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    updateMediaMetadata();
-                }).catch(error => {
-                    console.log("Trình phát nhạc bị gián đoạn hoặc bị chặn:", error);
-                    playIcon.classList.remove('hidden');
-                    pauseIcon.classList.add('hidden');
-                });
-            } else {
-                updateMediaMetadata();
-            }
-        } else {
-            // Chỉ thực hiện pause() sau khi playPromise đã được hoàn thành (resolve) thành công
-            if (playPromise !== undefined && playPromise !== null) {
-                playPromise.then(() => {
-                    audio.pause();
-                    playIcon.classList.remove('hidden');
-                    pauseIcon.classList.add('hidden');
-                }).catch(() => {
-                    // Kể cả khi quá trình play() trước đó thất bại, vẫn đưa UI về nút tạm dừng
-                    audio.pause();
-                    playIcon.classList.remove('hidden');
-                    pauseIcon.classList.add('hidden');
-                });
-            } else {
-                audio.pause();
-                playIcon.classList.remove('hidden');
-                pauseIcon.classList.add('hidden');
-            }
-        }
-    }
-
-    playPauseBtn.addEventListener('click', togglePlay);
-
-    audio.addEventListener('loadedmetadata', () => {
-        progress.max = audio.duration;
-        durationEl.textContent = formatTime(audio.duration);
-    });
-
-    audio.addEventListener('timeupdate', () => {
-        progress.value = audio.currentTime;
-        currentTimeEl.textContent = formatTime(audio.currentTime);
         
-        // Cập nhật vị trí trên thông báo nếu được hỗ trợ
-        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-            navigator.mediaSession.setPositionState({
-                duration: audio.duration,
-                playbackRate: audio.playbackRate,
-                position: audio.currentTime
-            });
-        }
-    });
-
-    progress.addEventListener('input', () => {
-        audio.currentTime = progress.value;
-    });
-
-    function formatTime(seconds) {
-        const min = Math.floor(seconds / 60);
-        const sec = Math.floor(seconds % 60);
-        return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        const metadata = new MediaMetadata({
+            title: SONG_TITLE,
+            artist: ARTIST_NAME,
+            album: 'SBIDI DEV',
+            artwork: [
+                { src: ARTWORK_URL, sizes: '512x512', type: 'image/jpeg' },
+                { src: ARTWORK_URL, sizes: '256x256', type: 'image/jpeg' }
+            ]
+        });
+        
+        navigator.mediaSession.metadata = metadata;
+        navigator.mediaSession.setActionHandler('play', () => {
+            log('📱 Lệnh Play từ Media Session');
+            audio.play();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            log('📱 Lệnh Pause từ Media Session');
+            audio.pause();
+        });
+        
+        log('✅ Media Session đã cập nhật với ẢNH từ Dropbox');
+        return true;
     }
-
-    // Tự động dừng icon khi hết bài
-    audio.addEventListener('ended', () => {
-        playIcon.classList.remove('hidden');
-        pauseIcon.classList.add('hidden');
-        progress.value = 0;
+    
+    async function playMusic() {
+        try {
+            // Cập nhật Media Session TRƯỚC khi phát (quan trọng!)
+            updateMediaSession();
+            
+            await audio.play();
+            isPlaying = true;
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+            playBtn.innerHTML = '⏸️ DỪNG';
+            statusDiv.innerHTML = '🎶 ĐANG PHÁT! Hãy vuốt Control Center xuống để thấy ảnh.';
+            log('✅ PHÁT THÀNH CÔNG! Vuốt Control Center để kiểm tra ảnh.');
+        } catch (err) {
+            log(`❌ LỖI PHÁT: ${err.message}`, true);
+            statusDiv.innerHTML = `⚠️ Lỗi: ${err.message}. Kiểm tra link MP3.`;
+        }
+    }
+    
+    function pauseMusic() {
+        audio.pause();
+        isPlaying = false;
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+        playBtn.innerHTML = '▶️ PHÁT NHẠC';
+        statusDiv.innerHTML = '⏸ Đã dừng. Bấm Play lại để xem ảnh.';
+        log('⏸ Dừng nhạc');
+    }
+    
+    function togglePlay() {
+        if (isPlaying) {
+            pauseMusic();
+        } else {
+            playMusic();
+        }
+    }
+    
+    playBtn.onclick = togglePlay;
+    
+    // Kiểm tra ảnh có load được không
+    albumArtImg.onload = () => log('✅ ẢNH DROPBOX load thành công!');
+    albumArtImg.onerror = () => log('❌ ẢNH DROPBOX load thất bại. Kiểm tra lại link.', true);
+    
+    // Theo dõi sự kiện audio
+    audio.addEventListener('play', () => {
+        isPlaying = true;
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+        playBtn.innerHTML = '⏸️ DỪNG';
     });
+    
+    audio.addEventListener('pause', () => {
+        isPlaying = false;
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+        playBtn.innerHTML = '▶️ PHÁT NHẠC';
+    });
+    
+    audio.addEventListener('ended', () => {
+        isPlaying = false;
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+        playBtn.innerHTML = '▶️ PHÁT NHẠC';
+        statusDiv.innerHTML = '🏁 Bài hát kết thúc. Bấm Play lại.';
+        log('🏁 Bài hát kết thúc');
+    });
+    
+    audio.addEventListener('error', (e) => {
+        log('⚠️ LỖI LOAD NHẠC: ' + (audio.error?.message || 'không xác định'), true);
+        statusDiv.innerHTML = '⚠️ Không thể tải MP3. Kiểm tra link Dropbox hoặc thử cách 2.';
+    });
+    
+    // Kiểm tra Media Session khi khởi tạo
+    if ('mediaSession' in navigator) {
+        log('🎉 Trình duyệt HỖ TRỢ Media Session API');
+        statusDiv.innerHTML = '✅ Sẵn sàng! Bấm Play → Vuốt Control Center → Thấy ảnh.';
+    } else {
+        log('⚠️ Trình duyệt KHÔNG hỗ trợ Media Session');
+        statusDiv.innerHTML = '⚠️ Vui lòng dùng Chrome/Safari/Edge trên điện thoại.';
+    }
+    
+    log('🚀 Trang đã sẵn sàng. Hãy bấm PLAY và vuốt Control Center!');
 </script>
-
 </body>
 </html>

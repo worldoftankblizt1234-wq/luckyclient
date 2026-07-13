@@ -84,7 +84,32 @@
             transform: scale(1.05);
             box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
         }
+        .btn-warning {
+            background: #f39c12;
+            color: #fff;
+        }
+        .btn-warning:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+        }
+        .btn-host {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: #fff;
+            font-size: 18px;
+            padding: 12px 30px;
+        }
+        .btn-host:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
+        }
+        .btn-host:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
 
+        /* ===== LOGIN MODAL ===== */
         .login-modal {
             position: fixed;
             top: 0;
@@ -164,6 +189,85 @@
             display: none;
         }
 
+        /* ===== GUIDE MODAL ===== */
+        .guide-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            backdrop-filter: blur(10px);
+        }
+        .guide-modal .modal-content {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .guide-modal .modal-content h2 {
+            font-size: 32px;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .guide-modal .modal-content .guide-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin: 10px 0;
+            text-align: left;
+            border-left: 4px solid #fff;
+        }
+        .guide-modal .modal-content .guide-item .label {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .guide-modal .modal-content .guide-item .desc {
+            color: #aaa;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .guide-modal .modal-content .guide-item.green {
+            border-left-color: #2ecc71;
+        }
+        .guide-modal .modal-content .guide-item.green .label {
+            color: #2ecc71;
+        }
+        .guide-modal .modal-content .guide-item.red {
+            border-left-color: #e74c3c;
+        }
+        .guide-modal .modal-content .guide-item.red .label {
+            color: #e74c3c;
+        }
+        .guide-modal .modal-content .guide-item.gold {
+            border-left-color: #f1c40f;
+        }
+        .guide-modal .modal-content .guide-item.gold .label {
+            color: #f1c40f;
+        }
+        .guide-modal .modal-content .guide-note {
+            color: #888;
+            font-size: 13px;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        /* ===== GAME ===== */
         .game-container {
             display: grid;
             grid-template-columns: 70% 30%;
@@ -196,6 +300,10 @@
             color: #ffd700;
             min-width: 50px;
             text-align: center;
+        }
+        .room-info .turn-label {
+            color: #ffd700;
+            font-weight: bold;
         }
         .dice-area {
             text-align: center;
@@ -265,6 +373,9 @@
         .result-text.rolling {
             color: #f1c40f;
         }
+        .result-text.waiting {
+            color: #95a5a6;
+        }
         .total-text {
             font-size: 18px;
             color: #aaa;
@@ -314,6 +425,16 @@
             transform: none !important;
             box-shadow: none !important;
         }
+        .bet-option.betted {
+            opacity: 0.6;
+            cursor: default;
+            transform: none !important;
+            border-color: #ffd700;
+        }
+        .bet-option.betted:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
         .bet-label {
             font-size: 24px;
             font-weight: bold;
@@ -356,6 +477,9 @@
             outline: none;
             border-color: #ffd700;
         }
+        .bet-input-group input:disabled {
+            opacity: 0.5;
+        }
         .quick-bets {
             display: flex;
             gap: 10px;
@@ -374,6 +498,10 @@
         .quick-bets button:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: #ffd700;
+        }
+        .quick-bets button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
         }
         .balance-display {
             text-align: center;
@@ -572,6 +700,19 @@
             font-size: 12px;
             margin-left: 10px;
         }
+        .lb-item.lb-top1 {
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid #ffd700;
+        }
+        .lb-item.lb-top2 {
+            background: rgba(192, 192, 192, 0.1);
+            border: 1px solid #c0c0c0;
+        }
+        .lb-item.lb-top3 {
+            background: rgba(205, 127, 50, 0.1);
+            border: 1px solid #cd7f32;
+        }
+
         .loading {
             text-align: center;
             color: #666;
@@ -598,6 +739,9 @@
         .toast-info {
             background: #3498db;
         }
+        .toast-warning {
+            background: #f39c12;
+        }
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -608,6 +752,33 @@
                 opacity: 1;
             }
         }
+
+        .host-controls {
+            background: rgba(231, 76, 60, 0.1);
+            border: 2px solid #e74c3c;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .host-controls .host-label {
+            color: #e74c3c;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .host-controls .host-label span {
+            background: #e74c3c;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
         @media (max-width: 1024px) {
             .game-container {
                 grid-template-columns: 1fr;
@@ -648,6 +819,10 @@
                 flex-direction: column;
                 align-items: center;
             }
+            .host-controls {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -664,6 +839,39 @@
         </div>
     </div>
 
+    <!-- ===== GUIDE MODAL ===== -->
+    <div class="guide-modal" id="guideModal">
+        <div class="modal-content">
+            <h2>📖 Hướng Dẫn</h2>
+            <p style="color:#aaa; margin-bottom:15px;">Cách chơi Tài Xỉu - CAO / THẤP</p>
+
+            <div class="guide-item green">
+                <div class="label">🟢 CAO (TÀI)</div>
+                <div class="desc">Tổng điểm 3 viên xúc xắc từ <strong>11 đến 17</strong></div>
+                <div class="desc" style="color:#2ecc71; font-weight:bold;">✅ Thắng x2 nếu bạn chọn CAO</div>
+            </div>
+
+            <div class="guide-item red">
+                <div class="label">🔴 THẤP (XỈU)</div>
+                <div class="desc">Tổng điểm 3 viên xúc xắc từ <strong>4 đến 10</strong></div>
+                <div class="desc" style="color:#e74c3c; font-weight:bold;">✅ Thắng x2 nếu bạn chọn THẤP</div>
+            </div>
+
+            <div class="guide-item gold">
+                <div class="label">🌟 BÃO</div>
+                <div class="desc">3 viên xúc xắc ra <strong>cùng 1 số</strong> (1-1-1, 2-2-2,...)</div>
+                <div class="desc" style="color:#f1c40f; font-weight:bold;">❌ TẤT CẢ thua! Nhà cái ăn hết</div>
+            </div>
+
+            <div class="guide-note">
+                📌 <strong>Lưu ý:</strong> Mỗi người chỉ được đặt cược <strong>1 lần</strong> mỗi lượt.<br />
+                Chờ Host bấm <strong>"Lượt tiếp theo"</strong> để chơi tiếp.
+            </div>
+
+            <button class="btn btn-primary" id="guideConfirmBtn" style="margin-top:20px;">✅ Đã hiểu, vào chơi!</button>
+        </div>
+    </div>
+
     <!-- ===== HEADER ===== -->
     <header class="header">
         <div class="logo">🎲 Vui Cùng Xúc Xắc</div>
@@ -672,6 +880,20 @@
             <button class="btn btn-danger" id="logoutBtn" style="display:none">Đăng xuất</button>
         </div>
     </header>
+
+    <!-- ===== HOST CONTROLS ===== -->
+    <div class="container" style="max-width:1400px; margin:0 auto; padding:0 20px;">
+        <div class="host-controls" id="hostControls">
+            <div class="host-label">
+                🎯 Host <span>Quyền điều khiển</span>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <span id="turnDisplay" style="color:#fff; font-weight:bold;">Lượt: <span id="turnNumber">0</span></span>
+                <button class="btn btn-host" id="nextTurnBtn">▶️ Lượt tiếp theo</button>
+                <button class="btn btn-warning" id="resetGameBtn" style="background:#e67e22;">🔄 Reset game</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ===== GAME ===== -->
     <div class="game-container">
@@ -759,14 +981,14 @@
     <div id="toastContainer"></div>
 
     <!-- ============================================================ -->
-    <!-- MAIN SCRIPT - KHÔNG DÙNG FIREBASE AUTH -->
+    <!-- MAIN SCRIPT -->
     <!-- ============================================================ -->
     <script type="module">
         // =====================================================
-        // IMPORT FIREBASE MODULES (CHỈ DATABASE)
+        // IMPORT FIREBASE MODULES
         // =====================================================
         import { initializeApp } from "firebase/app";
-        import { getDatabase, ref, onValue, set, get, remove, push, child, update } from "firebase/database";
+        import { getDatabase, ref, onValue, set, get, remove, push } from "firebase/database";
 
         // =====================================================
         // FIREBASE CONFIG
@@ -790,14 +1012,17 @@
         // =====================================================
         const ROOM_ID = 'public_room';
         const WORKER_URL = 'https://xuc-xac-api.worldoftankblizt1234.workers.dev';
+        const WIN_SCORE = 5000; // Điểm để đạt Top
 
         // =====================================================
         // DOM REFS
         // =====================================================
         const loginModal = document.getElementById('loginModal');
+        const guideModal = document.getElementById('guideModal');
         const nicknameInput = document.getElementById('nicknameInput');
         const loginNickBtn = document.getElementById('loginNickBtn');
         const loginError = document.getElementById('loginError');
+        const guideConfirmBtn = document.getElementById('guideConfirmBtn');
         const userNameDisplay = document.getElementById('userNameDisplay');
         const logoutBtn = document.getElementById('logoutBtn');
         const roomIdDisplay = document.getElementById('roomIdDisplay');
@@ -818,9 +1043,13 @@
         const betCao = document.getElementById('betCao');
         const betThap = document.getElementById('betThap');
         const toastContainer = document.getElementById('toastContainer');
+        const hostControls = document.getElementById('hostControls');
+        const nextTurnBtn = document.getElementById('nextTurnBtn');
+        const resetGameBtn = document.getElementById('resetGameBtn');
+        const turnNumber = document.getElementById('turnNumber');
 
         // =====================================================
-        // STATE - KHÔNG CẦN AUTH
+        // STATE
         // =====================================================
         let currentPlayerId = null;
         let currentNickname = '';
@@ -829,9 +1058,13 @@
         let isRolling = false;
         let myBetChoice = null;
         let myBetAmount = 0;
+        let hasBetted = false;
         let timer = 30;
         let timerInterval = null;
         let isLoggedIn = false;
+        let isHost = false;
+        let currentTurn = 0;
+        let isGameActive = false;
 
         // =====================================================
         // TOAST
@@ -873,14 +1106,14 @@
         }
 
         // =====================================================
-        // TẠO ID DUY NHẤT CHO NGƯỜI CHƠI
+        // GENERATE PLAYER ID
         // =====================================================
         function generatePlayerId() {
             return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         }
 
         // =====================================================
-        // LƯU NGƯỜI CHƠI VÀO DATABASE
+        // SAVE PLAYER
         // =====================================================
         async function savePlayerToDatabase(playerId, nickname) {
             try {
@@ -892,26 +1125,25 @@
                     bet_amount: 0,
                     wins: 0,
                     totalGames: 0,
-                    joinedAt: Date.now()
+                    joinedAt: Date.now(),
+                    hasBetted: false
                 };
                 await set(playerRef, playerData);
-                console.log(`✅ Đã lưu người chơi: ${nickname} (${playerId})`);
                 return true;
             } catch (error) {
-                console.error('❌ Lỗi lưu người chơi:', error);
+                console.error('Lỗi lưu người chơi:', error);
                 return false;
             }
         }
 
         // =====================================================
-        // KIỂM TRA TÊN ĐÃ TỒN TẠI CHƯA
+        // CHECK NICKNAME EXISTS
         // =====================================================
         async function isNicknameExists(nickname) {
             try {
                 const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
                 const snapshot = await get(playersRef);
                 if (!snapshot.exists()) return false;
-                
                 const players = snapshot.val();
                 for (const [key, value] of Object.entries(players)) {
                     if (value.name && value.name.toLowerCase() === nickname.toLowerCase()) {
@@ -920,13 +1152,12 @@
                 }
                 return false;
             } catch (error) {
-                console.error('❌ Lỗi kiểm tra tên:', error);
                 return false;
             }
         }
 
         // =====================================================
-        // ĐĂNG NHẬP
+        // LOGIN
         // =====================================================
         async function loginWithNickname(nickname) {
             if (!nickname || nickname.trim() === '') {
@@ -940,7 +1171,6 @@
             loginNickBtn.textContent = 'Đang đăng nhập...';
 
             try {
-                // Kiểm tra tên đã tồn tại
                 const exists = await isNicknameExists(nickname.trim());
                 if (exists) {
                     loginError.style.display = 'block';
@@ -950,29 +1180,53 @@
                     return;
                 }
 
-                // Tạo ID mới
                 const playerId = generatePlayerId();
-                
-                // Lưu vào database
                 await savePlayerToDatabase(playerId, nickname.trim());
-                
-                // Cập nhật state
+
                 currentPlayerId = playerId;
                 currentNickname = nickname.trim();
                 isLoggedIn = true;
-                
-                // Cập nhật UI
+
                 userNameDisplay.textContent = `👤 ${currentNickname}`;
                 logoutBtn.style.display = 'inline-block';
                 loginModal.style.display = 'none';
-                
+
+                // Kiểm tra host (người đầu tiên vào là host)
+                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+                const snapshot = await get(playersRef);
+                const players = snapshot.val() || {};
+                const playerCounts = Object.keys(players).length;
+
+                if (playerCounts === 1) {
+                    isHost = true;
+                    hostControls.style.display = 'flex';
+                    showToast('🎯 Bạn là HOST! Điều khiển game.', 'success');
+                    await set(ref(db, `rooms/${ROOM_ID}/host`), playerId);
+                    await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
+                    await set(ref(db, `rooms/${ROOM_ID}/turn`), 0);
+                } else {
+                    // Kiểm tra xem đã có host chưa
+                    const hostSnapshot = await get(ref(db, `rooms/${ROOM_ID}/host`));
+                    if (hostSnapshot.exists()) {
+                        isHost = false;
+                        hostControls.style.display = 'none';
+                    } else {
+                        // Nếu chưa có host, người này làm host
+                        isHost = true;
+                        hostControls.style.display = 'flex';
+                        showToast('🎯 Bạn là HOST! Điều khiển game.', 'success');
+                        await set(ref(db, `rooms/${ROOM_ID}/host`), playerId);
+                    }
+                }
+
                 showToast(`Chào mừng ${currentNickname}!`, 'success');
-                
-                // Khởi tạo game
+
                 await createDatabaseStructure();
                 await joinRoom();
                 listenRoom();
-                setTimeout(() => startTimer(), 1000);
+
+                // Hiển thị guide
+                guideModal.style.display = 'flex';
 
             } catch (error) {
                 console.error('Login error:', error);
@@ -984,7 +1238,7 @@
         }
 
         // =====================================================
-        // ĐĂNG XUẤT
+        // LOGOUT
         // =====================================================
         async function logout() {
             try {
@@ -1001,6 +1255,8 @@
                 userNameDisplay.textContent = '👤 Chưa đăng nhập';
                 logoutBtn.style.display = 'none';
                 loginModal.style.display = 'flex';
+                guideModal.style.display = 'none';
+                hostControls.style.display = 'none';
                 showToast('Đã đăng xuất!', 'info');
                 location.reload();
             } catch (error) {
@@ -1009,7 +1265,7 @@
         }
 
         // =====================================================
-        // TẠO CẤU TRÚC DATABASE
+        // CREATE DATABASE STRUCTURE
         // =====================================================
         async function createDatabaseStructure() {
             try {
@@ -1018,19 +1274,21 @@
                 if (!snapshot.exists()) {
                     await set(roomRef, {
                         id: ROOM_ID,
-                        status: 'betting',
+                        status: 'waiting',
                         timer: 30,
                         createdAt: Date.now(),
                         players: {},
                         result: null,
                         history: {},
-                        chat: {}
+                        chat: {},
+                        host: null,
+                        gameActive: false,
+                        turn: 0
                     });
-                    console.log('✅ Đã tạo cấu trúc database');
                 }
                 return true;
             } catch (error) {
-                console.error('❌ Lỗi tạo database:', error);
+                console.error('Lỗi tạo database:', error);
                 return false;
             }
         }
@@ -1044,8 +1302,18 @@
                 return;
             }
 
-            if (!isBetting || isRolling) {
-                showToast('Đã hết thời gian đặt cược!', 'error');
+            if (hasBetted) {
+                showToast('⚠️ Bạn đã đặt cược rồi! Chờ host bấm lượt tiếp theo.', 'warning');
+                return;
+            }
+
+            if (!isGameActive) {
+                showToast('⏳ Host chưa bắt đầu game!', 'warning');
+                return;
+            }
+
+            if (isRolling) {
+                showToast('🎲 Đang lắc xúc xắc, chờ kết quả!', 'warning');
                 return;
             }
 
@@ -1067,27 +1335,139 @@
                     amount: amount
                 });
 
-                showToast(`Đã đặt cược ${amount} điểm vào ${choice.toUpperCase()}`, 'success');
+                hasBetted = true;
+                myBetChoice = choice;
+                myBetAmount = amount;
+
+                // Highlight đã cược
+                document.querySelectorAll('.bet-option').forEach(el => {
+                    el.classList.remove('selected');
+                    if (el.classList.contains(choice)) {
+                        el.classList.add('betted');
+                    }
+                });
+
+                // Disable các nút cược
+                document.querySelectorAll('.bet-option').forEach(el => {
+                    el.classList.add('disabled');
+                });
+                document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = true);
+                betAmountInput.disabled = true;
+
+                showToast(`✅ Đã đặt cược ${amount} điểm vào ${choice.toUpperCase()}`, 'success');
+
             } catch (error) {
                 showToast('Đặt cược thất bại: ' + error.message, 'error');
             }
         }
 
         // =====================================================
-        // ROLL DICE
+        // NEXT TURN - HOST
         // =====================================================
-        async function rollDice() {
-            if (isRolling) return;
-            isRolling = true;
+        async function nextTurn() {
+            if (!isHost) {
+                showToast('⚠️ Chỉ Host mới có quyền!', 'error');
+                return;
+            }
 
             try {
-                const result = await callAPI('roll', 'POST');
-                console.log('🎲 Kết quả:', result);
+                // Kiểm tra xem có người chơi nào chưa cược không
+                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+                const snapshot = await get(playersRef);
+                const players = snapshot.val() || {};
+
+                // Reset trạng thái cược
+                for (const [pid, data] of Object.entries(players)) {
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/hasBetted`), false);
+                }
+
+                // Cập nhật lượt
+                currentTurn += 1;
+                await set(ref(db, `rooms/${ROOM_ID}/turn`), currentTurn);
+                turnNumber.textContent = currentTurn;
+
+                // Kích hoạt game
+                await set(ref(db, `rooms/${ROOM_ID}/gameActive`), true);
+                await set(ref(db, `rooms/${ROOM_ID}/status`), 'betting');
+
+                // Reset UI
+                hasBetted = false;
+                myBetChoice = null;
+                myBetAmount = 0;
+
+                document.querySelectorAll('.bet-option').forEach(el => {
+                    el.classList.remove('selected', 'betted', 'disabled');
+                });
+                document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = false);
+                betAmountInput.disabled = false;
+
+                // Bắt đầu timer
+                startTimer();
+
+                // Vô hiệu hóa nút next turn
+                nextTurnBtn.disabled = true;
+                nextTurnBtn.textContent = '⏳ Đang chờ...';
+
+                showToast(`🎯 Lượt ${currentTurn} bắt đầu! Hãy đặt cược.`, 'success');
+
             } catch (error) {
-                console.error('Roll dice error:', error);
-                showToast('Lắc xúc xắc thất bại: ' + error.message, 'error');
-                await callAPI('reset', 'POST');
-                setTimeout(() => startTimer(), 2000);
+                console.error('Next turn error:', error);
+                showToast('Lỗi: ' + error.message, 'error');
+            }
+        }
+
+        // =====================================================
+        // RESET GAME
+        // =====================================================
+        async function resetGame() {
+            if (!isHost) {
+                showToast('⚠️ Chỉ Host mới có quyền!', 'error');
+                return;
+            }
+
+            if (!confirm('Bạn có chắc muốn reset toàn bộ game? Tất cả dữ liệu sẽ bị xóa!')) return;
+
+            try {
+                // Xóa lịch sử
+                await set(ref(db, `rooms/${ROOM_ID}/history`), {});
+                // Reset kết quả
+                await set(ref(db, `rooms/${ROOM_ID}/result`), null);
+                // Reset lượt
+                await set(ref(db, `rooms/${ROOM_ID}/turn`), 0);
+                currentTurn = 0;
+                turnNumber.textContent = '0';
+
+                // Reset tất cả người chơi
+                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+                const snapshot = await get(playersRef);
+                const players = snapshot.val() || {};
+                for (const [pid, data] of Object.entries(players)) {
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/balance`), 1000);
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/bet_choice`), null);
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/bet_amount`), 0);
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/wins`), 0);
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/totalGames`), 0);
+                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/hasBetted`), false);
+                }
+
+                await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
+                await set(ref(db, `rooms/${ROOM_ID}/status`), 'waiting');
+
+                showToast('🔄 Đã reset game!', 'success');
+
+                // Reset UI
+                document.querySelectorAll('.dice').forEach(el => el.textContent = '⚀');
+                resultText.textContent = '⏳ Chọn cửa cược!';
+                resultText.className = 'result-text betting';
+                totalText.textContent = '';
+                historyList.innerHTML = '<span>Chưa có dữ liệu</span>';
+
+                nextTurnBtn.disabled = false;
+                nextTurnBtn.textContent = '▶️ Lượt tiếp theo';
+
+            } catch (error) {
+                console.error('Reset error:', error);
+                showToast('Lỗi reset: ' + error.message, 'error');
             }
         }
 
@@ -1105,7 +1485,6 @@
             isBetting = true;
             isRolling = false;
 
-            document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('disabled'));
             statusDisplay.textContent = '⏳ Đang đặt cược';
             statusDisplay.style.color = '#3498db';
             resultText.textContent = '⏳ Chọn cửa cược!';
@@ -1120,13 +1499,39 @@
                     timerInterval = null;
                     isBetting = false;
 
-                    document.querySelectorAll('.bet-option').forEach(el => el.classList.add('disabled'));
                     statusDisplay.textContent = '🎲 Đang lắc...';
                     statusDisplay.style.color = '#f1c40f';
                     resultText.textContent = '🎲 Đang lắc xúc xắc...';
                     resultText.className = 'result-text rolling';
 
-                    await rollDice();
+                    // Tất cả người chơi chưa cược sẽ mất lượt
+                    await callAPI('roll', 'POST');
+
+                    // Sau 3s reset
+                    setTimeout(async () => {
+                        await callAPI('reset', 'POST');
+                        await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
+                        await set(ref(db, `rooms/${ROOM_ID}/status`), 'waiting');
+
+                        // Kích hoạt nút next turn
+                        nextTurnBtn.disabled = false;
+                        nextTurnBtn.textContent = '▶️ Lượt tiếp theo';
+
+                        // Reset UI cược
+                        document.querySelectorAll('.bet-option').forEach(el => {
+                            el.classList.remove('selected', 'betted', 'disabled');
+                        });
+                        document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = false);
+                        betAmountInput.disabled = false;
+                        hasBetted = false;
+
+                        statusDisplay.textContent = '⏳ Chờ host bắt đầu lượt mới';
+                        statusDisplay.style.color = '#95a5a6';
+                        resultText.textContent = '⏳ Chờ host...';
+                        resultText.className = 'result-text waiting';
+
+                        showToast('⏳ Kết thúc lượt! Chờ host bấm tiếp.', 'info');
+                    }, 3000);
                 }
             }, 1000);
         }
@@ -1145,7 +1550,6 @@
                 console.log('✅ Đã tham gia phòng');
             } catch (error) {
                 console.error('Join room error:', error);
-                showToast('Không thể tham gia phòng: ' + error.message, 'error');
             }
         }
 
@@ -1167,37 +1571,72 @@
                 const players = data.players || {};
                 playerCount.textContent = Object.keys(players).length;
 
-                if (data.status === 'rolling' && data.result) {
-                    updateDiceResult(data.result);
-
-                    if (timerInterval) {
-                        clearInterval(timerInterval);
-                        timerInterval = null;
-                    }
-
-                    setTimeout(async () => {
-                        await callAPI('reset', 'POST');
-                        startTimer();
-                    }, 5000);
+                // Cập nhật host
+                if (data.host) {
+                    isHost = (data.host === currentPlayerId);
+                    hostControls.style.display = isHost ? 'flex' : 'none';
                 }
 
-                if (currentPlayerId && players[currentPlayerId]) {
-                    userBalance = players[currentPlayerId].balance || 0;
-                    balanceDisplay.textContent = userBalance;
-                    myBetChoice = players[currentPlayerId].bet_choice || null;
-                    myBetAmount = players[currentPlayerId].bet_amount || 0;
+                // Cập nhật game active
+                isGameActive = data.gameActive || false;
 
-                    document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
-                    if (myBetChoice) {
-                        const id = myBetChoice === 'cao' ? 'betCao' : 'betThap';
-                        document.getElementById(id).classList.add('selected');
-                        resultText.textContent = `✅ Đã cược ${myBetChoice.toUpperCase()} ${myBetAmount} điểm!`;
-                        resultText.className = 'result-text';
-                    }
+                // Cập nhật lượt
+                if (data.turn !== undefined) {
+                    currentTurn = data.turn;
+                    turnNumber.textContent = currentTurn;
+                }
+
+                if (data.status === 'rolling' && data.result) {
+                    updateDiceResult(data.result);
+                    isRolling = true;
                 }
 
                 if (data.history) {
                     updateHistory(data.history);
+                }
+
+                if (currentPlayerId && players[currentPlayerId]) {
+                    const playerData = players[currentPlayerId];
+                    userBalance = playerData.balance || 0;
+                    balanceDisplay.textContent = userBalance;
+                    hasBetted = playerData.hasBetted || false;
+
+                    myBetChoice = playerData.bet_choice || null;
+                    myBetAmount = playerData.bet_amount || 0;
+
+                    // Nếu đã cược, disable UI
+                    if (hasBetted) {
+                        document.querySelectorAll('.bet-option').forEach(el => {
+                            el.classList.add('disabled');
+                            if (el.classList.contains(myBetChoice)) {
+                                el.classList.add('betted');
+                            }
+                        });
+                        document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = true);
+                        betAmountInput.disabled = true;
+                    } else if (isGameActive && !isRolling) {
+                        document.querySelectorAll('.bet-option').forEach(el => {
+                            el.classList.remove('disabled', 'betted');
+                        });
+                        document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = false);
+                        betAmountInput.disabled = false;
+                    }
+
+                    // Kiểm tra top
+                    checkTopPlayers(players);
+                }
+
+                // Kiểm tra trạng thái
+                if (data.status === 'waiting' && !data.gameActive) {
+                    statusDisplay.textContent = '⏳ Chờ host bắt đầu...';
+                    statusDisplay.style.color = '#95a5a6';
+                    if (!isRolling) {
+                        resultText.textContent = '⏳ Chờ host...';
+                        resultText.className = 'result-text waiting';
+                    }
+                } else if (data.status === 'betting' && data.gameActive) {
+                    statusDisplay.textContent = '⏳ Đang đặt cược';
+                    statusDisplay.style.color = '#3498db';
                 }
             });
 
@@ -1219,8 +1658,29 @@
                 }
             });
 
+            // Leaderboard
             setInterval(updateLeaderboard, 10000);
             updateLeaderboard();
+        }
+
+        // =====================================================
+        // CHECK TOP PLAYERS
+        // =====================================================
+        function checkTopPlayers(players) {
+            const entries = Object.entries(players);
+            const sorted = entries.sort((a, b) => (b[1].balance || 0) - (a[1].balance || 0));
+
+            const top1 = sorted[0];
+            const top2 = sorted[1];
+            const top3 = sorted[2];
+
+            // Chỉ thông báo khi có người đạt WIN_SCORE
+            sorted.forEach(([pid, data], index) => {
+                if (data.balance >= WIN_SCORE && index < 3) {
+                    const rank = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
+                    showToast(`🏆 ${data.name} đạt ${rank} với ${data.balance} điểm!`, 'success');
+                }
+            });
         }
 
         // =====================================================
@@ -1248,7 +1708,7 @@
             if (isBao) {
                 resultText.textContent = '🎊 BÃO! Nhà cái ăn hết!';
                 resultText.className = 'result-text win-bao';
-                showToast('😱 BÃO! Bạn mất hết!', 'error');
+                showToast('😱 BÃO! Tất cả thua!', 'error');
             } else if (winner === 'cao') {
                 resultText.textContent = '🟢 Kết quả: CAO!';
                 resultText.className = 'result-text win-cao';
@@ -1341,11 +1801,21 @@
                 }
 
                 leaderboardList.innerHTML = data.map((item, index) => {
-                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                    let medal = `#${index + 1}`;
+                    let cls = '';
+                    if (index === 0) { medal = '🥇';
+                        cls = 'lb-top1'; }
+                    if (index === 1) { medal = '🥈';
+                        cls = 'lb-top2'; }
+                    if (index === 2) { medal = '🥉';
+                        cls = 'lb-top3'; }
+
+                    const isTop = item.balance >= WIN_SCORE;
+
                     return `
-                        <div class="lb-item">
+                        <div class="lb-item ${cls}">
                             <span class="lb-rank">${medal}</span>
-                            <span class="lb-name">${item.name}</span>
+                            <span class="lb-name">${item.name} ${isTop ? '🏆' : ''}</span>
                             <span class="lb-rate">💰${item.balance}</span>
                             ${item.winRate ? `<span class="lb-winrate">🏆${item.winRate}%</span>` : ''}
                         </div>
@@ -1378,42 +1848,25 @@
 
         logoutBtn.addEventListener('click', logout);
 
+        guideConfirmBtn.addEventListener('click', () => {
+            guideModal.style.display = 'none';
+            if (isHost) {
+                showToast('🎯 Bạn là Host! Bấm "Lượt tiếp theo" để bắt đầu.', 'info');
+            }
+        });
+
         betCao.addEventListener('click', () => placeBet('cao'));
         betThap.addEventListener('click', () => placeBet('thap'));
 
+        nextTurnBtn.addEventListener('click', nextTurn);
+        resetGameBtn.addEventListener('click', resetGame);
+
         // =====================================================
-        // INIT - KHÔNG CẦN AUTH
+        // INIT
         // =====================================================
         console.log('🎲 Vui Cùng Xúc Xắc - Client started!');
         console.log(`📡 Worker URL: ${WORKER_URL}`);
-        console.log('🔓 Đã bỏ Firebase Auth, dùng Database thuần túy');
-        
-        // Kiểm tra nếu đã đăng nhập trước đó (lưu trong localStorage)
-        const savedPlayerId = localStorage.getItem('playerId');
-        const savedNickname = localStorage.getItem('nickname');
-        
-        if (savedPlayerId && savedNickname) {
-            // Kiểm tra xem player còn tồn tại trong database không
-            const playerRef = ref(db, `rooms/${ROOM_ID}/players/${savedPlayerId}`);
-            const snapshot = await get(playerRef);
-            if (snapshot.exists()) {
-                currentPlayerId = savedPlayerId;
-                currentNickname = savedNickname;
-                isLoggedIn = true;
-                userNameDisplay.textContent = `👤 ${currentNickname}`;
-                logoutBtn.style.display = 'inline-block';
-                loginModal.style.display = 'none';
-                
-                await createDatabaseStructure();
-                await joinRoom();
-                listenRoom();
-                setTimeout(() => startTimer(), 1000);
-                console.log(`✅ Tự động đăng nhập: ${currentNickname}`);
-            } else {
-                localStorage.removeItem('playerId');
-                localStorage.removeItem('nickname');
-            }
-        }
+        console.log('🏆 Điểm để đạt Top:', WIN_SCORE);
     </script>
 </body>
 </html>

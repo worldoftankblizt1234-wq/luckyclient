@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🔧 Admin - Vui Cùng Xúc Xắc</title>
+    <title>🎲 Vui Cùng Xúc Xắc</title>
 
     <script type="importmap">
         {
             "imports": {
                 "firebase/app": "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js",
                 "firebase/database": "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js"
             }
         }
@@ -25,12 +26,7 @@
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             color: #fff;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            overflow-x: hidden;
         }
 
         .header {
@@ -41,10 +37,8 @@
             align-items: center;
             backdrop-filter: blur(10px);
             border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px 15px 0 0;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
         }
         .logo {
             font-size: 28px;
@@ -91,50 +85,420 @@
             transform: scale(1.05);
             box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
         }
-        .btn-warning {
-            background: #f39c12;
+
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+        }
+        .login-modal .modal-content {
+            background: linear-gradient(145deg, #1a1a2e, #16213e);
+            padding: 40px;
+            border-radius: 30px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .login-modal .modal-content h2 {
+            font-size: 36px;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .login-modal .modal-content .sub-title {
+            color: #aaa;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .login-modal .modal-content input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
             color: #fff;
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: all 0.3s;
         }
-        .btn-warning:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+        .login-modal .modal-content input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(247, 151, 30, 0.2);
         }
-        .btn-secondary {
-            background: #7f8c8d;
-            color: #fff;
+        .login-modal .modal-content input::placeholder {
+            color: #666;
         }
-        .btn-secondary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(127, 140, 141, 0.5);
+        .login-modal .modal-content .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 15px;
+        }
+        .login-modal .modal-content .error-msg {
+            color: #ff4757;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
         }
 
-        .cards {
+        .game-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 70% 30%;
             gap: 20px;
-            margin-bottom: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .card {
+        .game-left {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 20px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .card h3 {
-            margin-bottom: 15px;
-            color: #ffd700;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
-            padding-bottom: 10px;
-        }
-        .card .input-group {
+        .room-info {
             display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 10px;
+        }
+        .room-info .timer {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 50px;
+            text-align: center;
+        }
+        .dice-area {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
-        .card .input-group input,
-        .card .input-group select {
+        .dice {
+            font-size: 80px;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #2d2d2d, #1a1a1a);
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .dice.rolling {
+            animation: rollDice 0.5s ease;
+        }
+        @keyframes rollDice {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+            25% {
+                transform: rotate(90deg) scale(1.2);
+            }
+            50% {
+                transform: rotate(180deg) scale(0.8);
+            }
+            75% {
+                transform: rotate(270deg) scale(1.2);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+        .result-text {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .result-text.win-cao {
+            color: #2ecc71;
+        }
+        .result-text.win-thap {
+            color: #e74c3c;
+        }
+        .result-text.win-bao {
+            color: #f1c40f;
+        }
+        .result-text.betting {
+            color: #3498db;
+        }
+        .result-text.rolling {
+            color: #f1c40f;
+        }
+        .total-text {
+            font-size: 18px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        .bet-area {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .bet-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .bet-option {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+        .bet-option.cao {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            border-color: #00b894;
+        }
+        .bet-option.thap {
+            background: linear-gradient(135deg, #e17055, #d63031);
+            border-color: #e17055;
+        }
+        .bet-option:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+        .bet-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        }
+        .bet-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        .bet-option.disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        .bet-label {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .bet-range {
+            font-size: 14px;
+            opacity: 0.8;
+            margin: 5px 0;
+        }
+        .bet-odds {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .bet-control {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bet-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bet-input-group label {
+            font-size: 14px;
+            color: #aaa;
+        }
+        .bet-input-group input {
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            width: 100%;
+        }
+        .bet-input-group input:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+        .quick-bets {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .quick-bets button {
+            padding: 8px 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: transparent;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .quick-bets button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ffd700;
+        }
+        .balance-display {
+            text-align: center;
+            font-size: 18px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .balance-display span {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .history-area {
+            margin-top: 20px;
+        }
+        .history-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #aaa;
+        }
+        .history-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .history-list span {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .history-list .h-cao {
+            background: #00b894;
+            color: #fff;
+        }
+        .history-list .h-thap {
+            background: #e17055;
+            color: #fff;
+        }
+        .history-list .h-bao {
+            background: #f1c40f;
+            color: #000;
+        }
+        .game-right {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .chat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+        }
+        .chat-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            min-height: 200px;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .chat-empty {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+        }
+        .chat-message {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 14px;
+            animation: fadeInMsg 0.3s ease;
+        }
+        @keyframes fadeInMsg {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .chat-message .msg-name {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .chat-message .msg-time {
+            color: #666;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
             flex: 1;
             padding: 10px;
             border-radius: 10px;
@@ -142,84 +506,78 @@
             background: rgba(0, 0, 0, 0.3);
             color: #fff;
             font-size: 14px;
-            min-width: 100px;
         }
-        .card .input-group input:focus,
-        .card .input-group select:focus {
+        .chat-input input:focus {
             outline: none;
             border-color: #ffd700;
         }
-        .card .input-group input::placeholder {
-            color: #666;
-        }
-        .card .input-group select option {
-            background: #1a1a2e;
-            color: #fff;
-        }
-        .card .btn {
+        .chat-input button {
             padding: 10px 20px;
-            white-space: nowrap;
         }
-        .card .btn-sm {
-            padding: 6px 14px;
-            font-size: 13px;
-        }
-
-        .user-list {
+        .leaderboard {
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 15px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 20px;
-        }
-        .user-list h3 {
-            margin-bottom: 15px;
-            color: #ffd700;
-            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
-            padding-bottom: 10px;
-        }
-        .user-list .table-wrap {
-            overflow-x: auto;
-        }
-        .user-list table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .user-list table th,
-        .user-list table td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .user-list table th {
-            color: #ffd700;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-        }
-        .user-list table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .user-list table .action-btns {
+            max-height: 300px;
             display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
+            flex-direction: column;
         }
-        .user-list table .action-btns .btn {
-            padding: 4px 12px;
+        .leaderboard-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaderboard-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .leaderboard-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .leaderboard-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .leaderboard-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .lb-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+        .lb-item .lb-rank {
+            font-weight: bold;
+            color: #ffd700;
+            min-width: 30px;
+        }
+        .lb-item .lb-name {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .lb-item .lb-rate {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .lb-item .lb-winrate {
+            color: #aaa;
             font-size: 12px;
-            border-radius: 12px;
+            margin-left: 10px;
         }
-
         .loading {
             text-align: center;
             color: #666;
             padding: 20px;
         }
-
         .toast {
             position: fixed;
             top: 20px;
@@ -251,132 +609,150 @@
                 opacity: 1;
             }
         }
-
-        .status-online {
-            color: #2ecc71;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .cards {
+        @media (max-width: 1024px) {
+            .game-container {
                 grid-template-columns: 1fr;
             }
+            .game-right {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .chat-box {
+                flex: 2;
+                min-width: 300px;
+            }
+            .leaderboard {
+                flex: 1;
+                min-width: 200px;
+            }
+        }
+        @media (max-width: 768px) {
             .header {
                 flex-direction: column;
                 text-align: center;
             }
-            .card .input-group {
+            .dice {
+                font-size: 50px;
+                width: 70px;
+                height: 70px;
+            }
+            .bet-options {
+                grid-template-columns: 1fr;
+            }
+            .game-right {
                 flex-direction: column;
             }
-            .user-list table {
-                font-size: 12px;
+            .chat-box {
+                height: 300px;
             }
-            .user-list table th,
-            .user-list table td {
-                padding: 6px 8px;
-            }
-            .user-list table .action-btns .btn {
-                padding: 2px 8px;
-                font-size: 10px;
+            .room-info {
+                flex-direction: column;
+                align-items: center;
             }
         }
     </style>
 </head>
 <body>
 
+    <!-- ===== LOGIN MODAL ===== -->
+    <div class="login-modal" id="loginModal">
+        <div class="modal-content">
+            <h2>🎲 Vui Cùng Xúc Xắc</h2>
+            <p class="sub-title">Nhập biệt danh để bắt đầu chơi!</p>
+            <input type="text" id="nicknameInput" placeholder="Nhập biệt danh của bạn..." maxlength="20" autofocus />
+            <button class="btn btn-success" id="loginNickBtn">🎮 Vào chơi</button>
+            <div class="error-msg" id="loginError">Vui lòng nhập biệt danh!</div>
+        </div>
+    </div>
+
     <!-- ===== HEADER ===== -->
     <header class="header">
-        <div class="logo">🔧 Admin - Vui Cùng Xúc Xắc</div>
+        <div class="logo">🎲 Vui Cùng Xúc Xắc</div>
         <div class="user-info">
-            <span>👤 <strong>Admin</strong></span>
-            <span class="status-online">● Online</span>
+            <span id="userNameDisplay">👤 Chưa đăng nhập</span>
+            <button class="btn btn-danger" id="logoutBtn" style="display:none">Đăng xuất</button>
         </div>
     </header>
 
-    <div class="container">
+    <!-- ===== GAME ===== -->
+    <div class="game-container">
+        <!-- LEFT -->
+        <div class="game-left">
+            <div class="room-info">
+                <span>🏠 Phòng: <strong id="roomIdDisplay">Đang tải...</strong></span>
+                <span>👥 <span id="playerCount">0</span>/50</span>
+                <span>⏱️ <span id="timerDisplay" class="timer">30</span>s</span>
+                <span id="statusDisplay" style="color:#3498db;">⏳ Đang chờ...</span>
+            </div>
 
-        <!-- ===== CARDS ===== -->
-        <div class="cards">
-            <!-- Card: Quản lý user -->
-            <div class="card">
-                <h3>👤 Quản lý User</h3>
-                <div class="input-group">
-                    <input type="text" id="userSearch" placeholder="Tìm user theo tên hoặc ID..." />
-                    <button class="btn btn-primary" id="searchUserBtn">🔍 Tìm</button>
+            <div class="dice-area">
+                <div class="dice-container">
+                    <div class="dice" id="dice1">⚀</div>
+                    <div class="dice" id="dice2">⚀</div>
+                    <div class="dice" id="dice3">⚀</div>
                 </div>
-                <div class="input-group">
-                    <select id="userSelect">
-                        <option value="">-- Chọn user --</option>
-                    </select>
-                    <input type="number" id="amountInput" placeholder="Số điểm..." value="100" />
+                <div class="result-text" id="resultText">⏳ Chọn cửa cược!</div>
+                <div class="total-text" id="totalText"></div>
+            </div>
+
+            <div class="bet-area">
+                <div class="bet-options">
+                    <div class="bet-option cao" id="betCao">
+                        <div class="bet-label">🟢 CAO</div>
+                        <div class="bet-range">11 - 17</div>
+                        <div class="bet-odds">x2</div>
+                    </div>
+                    <div class="bet-option thap" id="betThap">
+                        <div class="bet-label">🔴 THẤP</div>
+                        <div class="bet-range">4 - 10</div>
+                        <div class="bet-odds">x2</div>
+                    </div>
                 </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
-                    <button class="btn btn-success btn-sm" id="addPointsBtn">➕ Tăng điểm</button>
-                    <button class="btn btn-danger btn-sm" id="subPointsBtn">➖ Giảm điểm</button>
-                    <button class="btn btn-warning btn-sm" id="resetPointsBtn">🔄 Reset 1000</button>
-                </div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button class="btn btn-secondary btn-sm" id="loanBtn">💰 Cho vay x2</button>
-                    <button class="btn btn-danger btn-sm" id="deleteUserBtn" style="background:#c0392b;">🗑️ Xóa user</button>
-                    <button class="btn btn-secondary btn-sm" id="refreshBtn">🔄 Tải lại</button>
+
+                <div class="bet-control">
+                    <div class="bet-input-group">
+                        <label>💰 Số điểm cược:</label>
+                        <input type="number" id="betAmount" value="100" min="10" step="10" />
+                        <div class="quick-bets">
+                            <button onclick="setBet(50)">50</button>
+                            <button onclick="setBet(100)">100</button>
+                            <button onclick="setBet(500)">500</button>
+                            <button onclick="setBet(1000)">1000</button>
+                            <button onclick="setBet(5000)">5000</button>
+                        </div>
+                    </div>
+                    <div class="balance-display">
+                        💰 Số dư: <span id="balanceDisplay">0</span> điểm
+                    </div>
                 </div>
             </div>
 
-            <!-- Card: Xóa lịch sử & chat -->
-            <div class="card">
-                <h3>🗑️ Xóa dữ liệu</h3>
-                <div class="input-group">
-                    <select id="historyAction">
-                        <option value="all">Xóa tất cả lịch sử</option>
-                        <option value="last5">Xóa 5 kết quả gần nhất</option>
-                        <option value="last10">Xóa 10 kết quả gần nhất</option>
-                        <option value="last20">Xóa 20 kết quả gần nhất</option>
-                        <option value="custom">Xóa theo số lượng</option>
-                    </select>
-                    <input type="number" id="historyCount" placeholder="Số lượng..." value="5" style="display:none; width:100px;" />
+            <div class="history-area">
+                <div class="history-title">📊 Lịch sử kết quả</div>
+                <div id="historyList" class="history-list">
+                    <span>Chưa có dữ liệu</span>
                 </div>
-                <button class="btn btn-danger" id="clearHistoryBtn" style="width:100%;">🗑️ Xóa lịch sử</button>
-
-                <hr style="border-color:rgba(255,255,255,0.1); margin:15px 0;" />
-
-                <div class="input-group">
-                    <select id="chatAction">
-                        <option value="all">Xóa tất cả chat</option>
-                        <option value="last5">Xóa 5 tin nhắn gần nhất</option>
-                        <option value="last10">Xóa 10 tin nhắn gần nhất</option>
-                        <option value="last20">Xóa 20 tin nhắn gần nhất</option>
-                        <option value="custom">Xóa theo số lượng</option>
-                    </select>
-                    <input type="number" id="chatCount" placeholder="Số lượng..." value="5" style="display:none; width:100px;" />
-                </div>
-                <button class="btn btn-danger" id="clearChatBtn" style="width:100%;">🗑️ Xóa chat</button>
             </div>
         </div>
 
-        <!-- ===== USER LIST ===== -->
-        <div class="user-list">
-            <h3>📋 Danh sách người chơi <span style="font-size:14px; color:#aaa; font-weight:normal;" id="playerCount"></span></h3>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>UID</th>
-                            <th>Tên</th>
-                            <th>Số dư</th>
-                            <th>Thắng</th>
-                            <th>Ván</th>
-                            <th>Tỷ lệ</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userTableBody">
-                        <tr>
-                            <td colspan="8" class="loading">Đang tải...</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <!-- RIGHT -->
+        <div class="game-right">
+            <div class="chat-box">
+                <div class="chat-header">💬 Trò chuyện</div>
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-empty">Hãy nhập tin nhắn...</div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Nhập tin nhắn..." onkeypress="if(event.key==='Enter') sendChat()" />
+                    <button onclick="sendChat()" class="btn btn-primary">Gửi</button>
+                </div>
+            </div>
+
+            <div class="leaderboard">
+                <div class="leaderboard-header">🏆 Top người chơi</div>
+                <div id="leaderboardList" class="leaderboard-list">
+                    <div class="loading">Đang tải...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -391,6 +767,7 @@
         // IMPORT FIREBASE MODULES
         // =====================================================
         import { initializeApp } from "firebase/app";
+        import { getAuth, signInAnonymously, onAuthStateChanged, updateProfile } from "firebase/auth";
         import { getDatabase, ref, onValue, set, get, remove } from "firebase/database";
 
         // =====================================================
@@ -408,40 +785,55 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
 
         // =====================================================
         // CONFIG
         // =====================================================
         const ROOM_ID = 'public_room';
+        const WORKER_URL = 'https://xuc-xac-api.worldoftankblizt1234.workers.dev';
 
         // =====================================================
         // DOM REFS
         // =====================================================
-        const userTableBody = document.getElementById('userTableBody');
+        const loginModal = document.getElementById('loginModal');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const loginNickBtn = document.getElementById('loginNickBtn');
+        const loginError = document.getElementById('loginError');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const roomIdDisplay = document.getElementById('roomIdDisplay');
         const playerCount = document.getElementById('playerCount');
-        const userSearch = document.getElementById('userSearch');
-        const searchUserBtn = document.getElementById('searchUserBtn');
-        const userSelect = document.getElementById('userSelect');
-        const amountInput = document.getElementById('amountInput');
-        const addPointsBtn = document.getElementById('addPointsBtn');
-        const subPointsBtn = document.getElementById('subPointsBtn');
-        const resetPointsBtn = document.getElementById('resetPointsBtn');
-        const loanBtn = document.getElementById('loanBtn');
-        const deleteUserBtn = document.getElementById('deleteUserBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const historyAction = document.getElementById('historyAction');
-        const historyCount = document.getElementById('historyCount');
-        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-        const chatAction = document.getElementById('chatAction');
-        const chatCount = document.getElementById('chatCount');
-        const clearChatBtn = document.getElementById('clearChatBtn');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const dice1 = document.getElementById('dice1');
+        const dice2 = document.getElementById('dice2');
+        const dice3 = document.getElementById('dice3');
+        const resultText = document.getElementById('resultText');
+        const totalText = document.getElementById('totalText');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const historyList = document.getElementById('historyList');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const leaderboardList = document.getElementById('leaderboardList');
+        const betAmountInput = document.getElementById('betAmount');
+        const betCao = document.getElementById('betCao');
+        const betThap = document.getElementById('betThap');
         const toastContainer = document.getElementById('toastContainer');
 
         // =====================================================
         // STATE
         // =====================================================
-        let allPlayers = {};
+        let currentUser = null;
+        let currentNickname = '';
+        let userBalance = 1000;
+        let isBetting = false;
+        let isRolling = false;
+        let myBetChoice = null;
+        let myBetAmount = 0;
+        let timer = 30;
+        let timerInterval = null;
 
         // =====================================================
         // TOAST
@@ -459,359 +851,564 @@
         }
 
         // =====================================================
-        // LOAD DATA
+        // API HELPER
         // =====================================================
-        function loadData() {
-            const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
-            onValue(playersRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    allPlayers = data;
-                    updateUserTable(data);
-                    updateUserSelect(data);
-                } else {
-                    allPlayers = {};
-                    userTableBody.innerHTML = '<tr><td colspan="8" class="loading">Chưa có người chơi</td></tr>';
-                    userSelect.innerHTML = '<option value="">-- Chưa có user --</option>';
-                    playerCount.textContent = '(0)';
-                }
-            });
-        }
-
-        // =====================================================
-        // UPDATE USER TABLE
-        // =====================================================
-        function updateUserTable(players) {
-            const entries = Object.entries(players);
-            if (entries.length === 0) {
-                userTableBody.innerHTML = '<tr><td colspan="8" class="loading">Chưa có người chơi</td></tr>';
-                playerCount.textContent = '(0)';
-                return;
-            }
-
-            playerCount.textContent = `(${entries.length})`;
-
-            const searchTerm = userSearch.value.toLowerCase().trim();
-            let filtered = entries;
-            if (searchTerm) {
-                filtered = entries.filter(([uid, data]) => {
-                    const name = (data.name || '').toLowerCase();
-                    return name.includes(searchTerm) || uid.includes(searchTerm);
-                });
-            }
-
-            filtered.sort((a, b) => (b[1].balance || 0) - (a[1].balance || 0));
-
-            userTableBody.innerHTML = filtered.map(([uid, data], index) => {
-                const name = data.name || 'Người chơi';
-                const balance = data.balance || 0;
-                const wins = data.wins || 0;
-                const totalGames = data.totalGames || 0;
-                const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
-
-                return `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td style="font-size:11px; color:#aaa; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${uid}">${uid.substring(0, 10)}...</td>
-                        <td><strong>${name}</strong></td>
-                        <td style="color:#ffd700; font-weight:bold;">${balance}</td>
-                        <td>${wins}</td>
-                        <td>${totalGames}</td>
-                        <td>${winRate}%</td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn btn-success" onclick="window.adminAction('addPoints', '${uid}')" title="Tăng điểm">+</button>
-                                <button class="btn btn-danger" onclick="window.adminAction('subPoints', '${uid}')" title="Giảm điểm">-</button>
-                                <button class="btn btn-warning" onclick="window.adminAction('resetPoints', '${uid}')" title="Reset về 1000">R</button>
-                                <button class="btn btn-secondary" onclick="window.adminAction('loan', '${uid}')" title="Cho vay x2">💰</button>
-                                <button class="btn btn-danger" onclick="window.adminAction('deleteUser', '${uid}')" style="background:#c0392b;" title="Xóa user">🗑️</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // =====================================================
-        // UPDATE USER SELECT
-        // =====================================================
-        function updateUserSelect(players) {
-            const entries = Object.entries(players);
-            if (entries.length === 0) {
-                userSelect.innerHTML = '<option value="">-- Chưa có user --</option>';
-                return;
-            }
-
-            entries.sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
-
-            userSelect.innerHTML = entries.map(([uid, data]) => {
-                const name = data.name || 'Người chơi';
-                return `<option value="${uid}">${name} (${uid.substring(0, 8)}...)</option>`;
-            }).join('');
-        }
-
-        // =====================================================
-        // ADMIN ACTIONS - SỬA LỖI KHÔNG DÙNG .child()
-        // =====================================================
-        window.adminAction = async function(action, uid) {
+        async function callAPI(endpoint, method = 'GET', data = null) {
             try {
-                // Lấy dữ liệu user
-                const playerRef = ref(db, `rooms/${ROOM_ID}/players/${uid}`);
-                const snapshot = await get(playerRef);
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                const response = await fetch(`${WORKER_URL}/api/${endpoint}`, options);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || 'API Error');
+                }
+                return result;
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // =====================================================
+        // PLACE BET
+        // =====================================================
+        async function placeBet(choice) {
+            if (!currentUser) {
+                showToast('Vui lòng đăng nhập!', 'error');
+                return;
+            }
+
+            if (!isBetting || isRolling) {
+                showToast('Đã hết thời gian đặt cược!', 'error');
+                return;
+            }
+
+            const amount = parseInt(betAmountInput.value) || 100;
+            if (amount > userBalance) {
+                showToast('Không đủ điểm!', 'error');
+                return;
+            }
+
+            if (amount < 10) {
+                showToast('Cược tối thiểu 10 điểm!', 'error');
+                return;
+            }
+
+            try {
+                await callAPI('bet', 'POST', {
+                    userId: currentUser.uid,
+                    choice: choice,
+                    amount: amount
+                });
+
+                showToast(`Đã đặt cược ${amount} điểm vào ${choice.toUpperCase()}`, 'success');
+            } catch (error) {
+                showToast('Đặt cược thất bại: ' + error.message, 'error');
+            }
+        }
+
+        // =====================================================
+        // ROLL DICE
+        // =====================================================
+        async function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+
+            try {
+                const result = await callAPI('roll', 'POST');
+                console.log('🎲 Kết quả:', result);
+            } catch (error) {
+                console.error('Roll dice error:', error);
+                showToast('Lắc xúc xắc thất bại: ' + error.message, 'error');
+                await callAPI('reset', 'POST');
+                setTimeout(() => startTimer(), 2000);
+            }
+        }
+
+        // =====================================================
+        // TIMER
+        // =====================================================
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            timer = 30;
+            timerDisplay.textContent = timer;
+            isBetting = true;
+            isRolling = false;
+
+            document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('disabled'));
+            statusDisplay.textContent = '⏳ Đang đặt cược';
+            statusDisplay.style.color = '#3498db';
+            resultText.textContent = '⏳ Chọn cửa cược!';
+            resultText.className = 'result-text betting';
+
+            timerInterval = setInterval(async () => {
+                timer = timer - 1;
+                timerDisplay.textContent = timer;
+
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    isBetting = false;
+
+                    document.querySelectorAll('.bet-option').forEach(el => el.classList.add('disabled'));
+                    statusDisplay.textContent = '🎲 Đang lắc...';
+                    statusDisplay.style.color = '#f1c40f';
+                    resultText.textContent = '🎲 Đang lắc xúc xắc...';
+                    resultText.className = 'result-text rolling';
+
+                    await rollDice();
+                }
+            }, 1000);
+        }
+
+        // =====================================================
+        // TẠO CẤU TRÚC DATABASE
+        // =====================================================
+        async function createDatabaseStructure() {
+            try {
+                const roomRef = ref(db, `rooms/${ROOM_ID}`);
+                const snapshot = await get(roomRef);
+
                 if (!snapshot.exists()) {
-                    showToast('❌ Không tìm thấy user!', 'error');
+                    await set(roomRef, {
+                        id: ROOM_ID,
+                        status: 'betting',
+                        timer: 30,
+                        createdAt: Date.now(),
+                        players: {},
+                        result: null,
+                        history: {},
+                        chat: {}
+                    });
+                    console.log('✅ Đã tạo cấu trúc database');
+                }
+                return true;
+            } catch (error) {
+                console.error('❌ Lỗi tạo database:', error);
+                return false;
+            }
+        }
+
+        // =====================================================
+        // THÊM NGƯỜI CHƠI
+        // =====================================================
+        async function addPlayerToDatabase(userId, nickname) {
+            try {
+                const playerRef = ref(db, `rooms/${ROOM_ID}/players/${userId}`);
+                const snapshot = await get(playerRef);
+
+                if (!snapshot.exists()) {
+                    await set(playerRef, {
+                        name: nickname,
+                        balance: 1000,
+                        bet_choice: null,
+                        bet_amount: 0,
+                        wins: 0,
+                        totalGames: 0,
+                        joinedAt: Date.now()
+                    });
+                    console.log(`✅ Đã thêm người chơi ${nickname}`);
+                }
+                return true;
+            } catch (error) {
+                console.error('❌ Lỗi thêm người chơi:', error);
+                return false;
+            }
+        }
+
+        // =====================================================
+        // LẤY TÊN NGƯỜI CHƠI TỪ DATABASE
+        // =====================================================
+        async function getPlayerName(userId) {
+            try {
+                const playerRef = ref(db, `rooms/${ROOM_ID}/players/${userId}`);
+                const snapshot = await get(playerRef);
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    return data.name || 'Người chơi';
+                }
+                return 'Người chơi';
+            } catch (error) {
+                console.error('Lỗi lấy tên người chơi:', error);
+                return 'Người chơi';
+            }
+        }
+
+        // =====================================================
+        // AUTH
+        // =====================================================
+        async function loginWithNickname(nickname) {
+            if (!nickname || nickname.trim() === '') {
+                loginError.style.display = 'block';
+                loginError.textContent = 'Vui lòng nhập biệt danh!';
+                return;
+            }
+
+            loginError.style.display = 'none';
+            loginNickBtn.disabled = true;
+            loginNickBtn.textContent = 'Đang đăng nhập...';
+
+            try {
+                const result = await signInAnonymously(auth);
+                const user = result.user;
+
+                // Cập nhật displayName trong Auth
+                await updateProfile(user, {
+                    displayName: nickname.trim()
+                });
+
+                // Lưu vào state
+                currentNickname = nickname.trim();
+                userNameDisplay.textContent = `👤 ${currentNickname}`;
+
+                showToast(`Chào mừng ${nickname}!`, 'success');
+
+            } catch (error) {
+                console.error('Login error:', error);
+                loginError.style.display = 'block';
+                loginError.textContent = 'Lỗi: ' + error.message;
+                loginNickBtn.disabled = false;
+                loginNickBtn.textContent = '🎮 Vào chơi';
+            }
+        }
+
+        // =====================================================
+        // AUTH STATE LISTENER - FIX LỖI TÊN
+        // =====================================================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+
+                // === LẤY TÊN TỪ DATABASE TRƯỚC ===
+                let displayName = await getPlayerName(user.uid);
+
+                // Nếu chưa có trong database, dùng displayName từ Auth
+                if (displayName === 'Người chơi' && user.displayName) {
+                    displayName = user.displayName;
+                }
+
+                currentNickname = displayName;
+                userNameDisplay.textContent = `👤 ${displayName}`;
+                logoutBtn.style.display = 'inline-block';
+                loginModal.style.display = 'none';
+
+                // Tạo database và thêm người chơi
+                await createDatabaseStructure();
+                await addPlayerToDatabase(user.uid, displayName);
+
+                await joinRoom();
+                listenRoom();
+
+                setTimeout(() => startTimer(), 1000);
+
+            } else {
+                currentUser = null;
+                userNameDisplay.textContent = '👤 Chưa đăng nhập';
+                logoutBtn.style.display = 'none';
+                loginModal.style.display = 'flex';
+                loginNickBtn.disabled = false;
+                loginNickBtn.textContent = '🎮 Vào chơi';
+            }
+        });
+
+        // =====================================================
+        // LOGIN BUTTON
+        // =====================================================
+        loginNickBtn.addEventListener('click', () => {
+            loginWithNickname(nicknameInput.value.trim());
+        });
+
+        nicknameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loginWithNickname(nicknameInput.value.trim());
+            }
+        });
+
+        // =====================================================
+        // LOGOUT
+        // =====================================================
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                if (currentUser) {
+                    await remove(ref(db, `rooms/${ROOM_ID}/players/${currentUser.uid}`));
+                }
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                await auth.signOut();
+                showToast('Đã đăng xuất!', 'info');
+                location.reload();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+
+        // =====================================================
+        // JOIN ROOM
+        // =====================================================
+        async function joinRoom() {
+            if (!currentUser) return;
+            try {
+                await callAPI('join', 'POST', {
+                    userId: currentUser.uid,
+                    userName: currentNickname
+                });
+                await callAPI('init', 'POST');
+                console.log('✅ Đã tham gia phòng');
+            } catch (error) {
+                console.error('Join room error:', error);
+                showToast('Không thể tham gia phòng: ' + error.message, 'error');
+            }
+        }
+
+        // =====================================================
+        // LISTEN ROOM
+        // =====================================================
+        function listenRoom() {
+            const roomRef = ref(db, `rooms/${ROOM_ID}`);
+
+            onValue(roomRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    roomIdDisplay.textContent = 'Chưa có phòng';
                     return;
                 }
 
-                const playerData = snapshot.val();
-                const currentBalance = playerData.balance || 0;
-                const amount = parseInt(amountInput.value) || 100;
-                let newBalance = currentBalance;
-                let actionName = '';
+                roomIdDisplay.textContent = ROOM_ID;
 
-                switch (action) {
-                    case 'addPoints':
-                        newBalance = currentBalance + amount;
-                        actionName = `+${amount} điểm`;
-                        break;
-                    case 'subPoints':
-                        newBalance = Math.max(0, currentBalance - amount);
-                        actionName = `-${amount} điểm`;
-                        break;
-                    case 'resetPoints':
-                        newBalance = 1000;
-                        actionName = 'reset về 1000 điểm';
-                        break;
-                    case 'loan':
-                        const loanAmount = currentBalance > 0 ? currentBalance : 100;
-                        newBalance = currentBalance + loanAmount;
-                        actionName = `vay +${loanAmount} điểm`;
-                        break;
-                    case 'deleteUser':
-                        if (confirm(`Bạn có chắc muốn xóa user "${playerData.name}"?`)) {
-                            await remove(playerRef);
-                            showToast(`🗑️ Đã xóa user ${playerData.name}`, 'success');
-                            loadData();
-                            return;
-                        }
-                        return;
-                    default:
-                        showToast('❌ Hành động không hợp lệ!', 'error');
-                        return;
+                const players = data.players || {};
+                playerCount.textContent = Object.keys(players).length;
+
+                // Cập nhật tên nếu có thay đổi
+                if (currentUser && players[currentUser.uid]) {
+                    const playerData = players[currentUser.uid];
+                    if (playerData.name && playerData.name !== currentNickname) {
+                        currentNickname = playerData.name;
+                        userNameDisplay.textContent = `👤 ${currentNickname}`;
+                    }
                 }
 
-                if (action !== 'deleteUser') {
-                    // Cập nhật balance - dùng ref trực tiếp
-                    const balanceRef = ref(db, `rooms/${ROOM_ID}/players/${uid}/balance`);
-                    await set(balanceRef, newBalance);
-                    showToast(`✅ ${playerData.name}: ${actionName} → ${newBalance} điểm`, 'success');
+                if (data.status === 'rolling' && data.result) {
+                    updateDiceResult(data.result);
+
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                    }
+
+                    setTimeout(async () => {
+                        await callAPI('reset', 'POST');
+                        startTimer();
+                    }, 5000);
                 }
 
+                if (currentUser && players[currentUser.uid]) {
+                    userBalance = players[currentUser.uid].balance || 0;
+                    balanceDisplay.textContent = userBalance;
+                    myBetChoice = players[currentUser.uid].bet_choice || null;
+                    myBetAmount = players[currentUser.uid].bet_amount || 0;
+
+                    document.querySelectorAll('.bet-option').forEach(el => el.classList.remove('selected'));
+                    if (myBetChoice) {
+                        const id = myBetChoice === 'cao' ? 'betCao' : 'betThap';
+                        document.getElementById(id).classList.add('selected');
+                        resultText.textContent = `✅ Đã cược ${myBetChoice.toUpperCase()} ${myBetAmount} điểm!`;
+                        resultText.className = 'result-text';
+                    }
+                }
+
+                if (data.history) {
+                    updateHistory(data.history);
+                }
+            });
+
+            // Chat
+            const chatRef = ref(db, `rooms/${ROOM_ID}/chat`);
+            onValue(chatRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    chatMessages.innerHTML = '<div class="chat-empty">Hãy nhập tin nhắn...</div>';
+                    return;
+                }
+                const messages = Object.values(data);
+                const latest = messages.slice(-50);
+                chatMessages.innerHTML = '';
+                if (latest.length === 0) {
+                    chatMessages.innerHTML = '<div class="chat-empty">Hãy nhập tin nhắn...</div>';
+                } else {
+                    latest.forEach(msg => addChatMessage(msg));
+                }
+            });
+
+            setInterval(updateLeaderboard, 10000);
+            updateLeaderboard();
+        }
+
+        // =====================================================
+        // UPDATE DICE RESULT
+        // =====================================================
+        function updateDiceResult(result) {
+            const dice = result.dice || [1, 1, 1];
+            const total = result.total || 0;
+            const winner = result.winner || '';
+            const isBao = result.isBao || false;
+
+            const diceSymbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+            document.querySelectorAll('.dice').forEach(el => {
+                el.classList.remove('rolling');
+                setTimeout(() => el.classList.add('rolling'), 10);
+            });
+
+            setTimeout(() => {
+                dice1.textContent = diceSymbols[dice[0] - 1];
+                dice2.textContent = diceSymbols[dice[1] - 1];
+                dice3.textContent = diceSymbols[dice[2] - 1];
+            }, 300);
+
+            if (isBao) {
+                resultText.textContent = '🎊 BÃO! Nhà cái ăn hết!';
+                resultText.className = 'result-text win-bao';
+                showToast('😱 BÃO! Bạn mất hết!', 'error');
+            } else if (winner === 'cao') {
+                resultText.textContent = '🟢 Kết quả: CAO!';
+                resultText.className = 'result-text win-cao';
+                if (myBetChoice === 'cao') {
+                    showToast(`🎉 Bạn thắng! +${myBetAmount * 2} điểm`, 'success');
+                }
+            } else if (winner === 'thap') {
+                resultText.textContent = '🔴 Kết quả: THẤP!';
+                resultText.className = 'result-text win-thap';
+                if (myBetChoice === 'thap') {
+                    showToast(`🎉 Bạn thắng! +${myBetAmount * 2} điểm`, 'success');
+                }
+            }
+
+            totalText.textContent = `Tổng: ${total}`;
+            isRolling = false;
+        }
+
+        // =====================================================
+        // UPDATE HISTORY
+        // =====================================================
+        function updateHistory(history) {
+            const historyArray = Object.values(history);
+            if (historyArray.length === 0) {
+                historyList.innerHTML = '<span>Chưa có dữ liệu</span>';
+                return;
+            }
+
+            const latest = historyArray.slice(-20).reverse();
+            historyList.innerHTML = latest.map(item => {
+                const result = item.result || 'thap';
+                const cls = result === 'cao' ? 'h-cao' : result === 'thap' ? 'h-thap' : 'h-bao';
+                const label = result === 'cao' ? 'C' : result === 'thap' ? 'T' : '🌟';
+                return `<span class="${cls}">${label}</span>`;
+            }).join('');
+        }
+
+        // =====================================================
+        // SEND CHAT
+        // =====================================================
+        window.sendChat = async function() {
+            if (!currentUser) {
+                showToast('Vui lòng đăng nhập!', 'error');
+                return;
+            }
+
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            try {
+                await callAPI('chat', 'POST', {
+                    userId: currentUser.uid,
+                    name: currentNickname,
+                    message: message
+                });
+                chatInput.value = '';
             } catch (error) {
-                console.error('Action error:', error);
-                showToast('❌ Lỗi: ' + error.message, 'error');
+                showToast('Gửi tin nhắn thất bại: ' + error.message, 'error');
             }
         };
 
         // =====================================================
-        // BUTTON EVENTS
+        // ADD CHAT MESSAGE
         // =====================================================
-        function getSelectedUser() {
-            const uid = userSelect.value;
-            if (!uid) {
-                showToast('❌ Chọn user trước!', 'error');
-                return null;
-            }
-            return uid;
+        function addChatMessage(msg) {
+            const empty = chatMessages.querySelector('.chat-empty');
+            if (empty) empty.remove();
+
+            const time = new Date(msg.timestamp).toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = `
+                <span class="msg-name">${msg.name}</span>
+                <span class="msg-time">${time}</span>
+                <div>${msg.message}</div>
+            `;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        addPointsBtn.addEventListener('click', () => {
-            const uid = getSelectedUser();
-            if (uid) window.adminAction('addPoints', uid);
-        });
-
-        subPointsBtn.addEventListener('click', () => {
-            const uid = getSelectedUser();
-            if (uid) window.adminAction('subPoints', uid);
-        });
-
-        resetPointsBtn.addEventListener('click', () => {
-            const uid = getSelectedUser();
-            if (uid) window.adminAction('resetPoints', uid);
-        });
-
-        loanBtn.addEventListener('click', () => {
-            const uid = getSelectedUser();
-            if (uid) window.adminAction('loan', uid);
-        });
-
-        deleteUserBtn.addEventListener('click', () => {
-            const uid = getSelectedUser();
-            if (uid) window.adminAction('deleteUser', uid);
-        });
-
-        refreshBtn.addEventListener('click', () => {
-            loadData();
-            showToast('🔄 Đã tải lại dữ liệu', 'info');
-        });
-
-        searchUserBtn.addEventListener('click', () => {
-            loadData();
-        });
-
-        userSearch.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                loadData();
-            }
-        });
-
         // =====================================================
-        // XÓA LỊCH SỬ
+        // LEADERBOARD
         // =====================================================
-        clearHistoryBtn.addEventListener('click', async () => {
+        async function updateLeaderboard() {
             try {
-                const action = historyAction.value;
-                let count = parseInt(historyCount.value) || 5;
-
-                const historyRef = ref(db, `rooms/${ROOM_ID}/history`);
-                const snapshot = await get(historyRef);
-                if (!snapshot.exists()) {
-                    showToast('ℹ️ Không có lịch sử để xóa', 'info');
+                const data = await callAPI('leaderboard', 'GET');
+                if (!data || data.length === 0) {
+                    leaderboardList.innerHTML = '<div class="loading">Chưa có người chơi</div>';
                     return;
                 }
 
-                const history = snapshot.val();
-                const keys = Object.keys(history);
-
-                if (keys.length === 0) {
-                    showToast('ℹ️ Không có lịch sử để xóa', 'info');
-                    return;
-                }
-
-                let keysToRemove = [];
-
-                switch (action) {
-                    case 'all':
-                        keysToRemove = keys;
-                        break;
-                    case 'last5':
-                        keysToRemove = keys.slice(-5);
-                        break;
-                    case 'last10':
-                        keysToRemove = keys.slice(-10);
-                        break;
-                    case 'last20':
-                        keysToRemove = keys.slice(-20);
-                        break;
-                    case 'custom':
-                        const customCount = Math.min(count, keys.length);
-                        keysToRemove = keys.slice(-customCount);
-                        break;
-                    default:
-                        keysToRemove = keys;
-                }
-
-                if (keysToRemove.length === 0) {
-                    showToast('ℹ️ Không có gì để xóa', 'info');
-                    return;
-                }
-
-                if (!confirm(`Bạn có chắc muốn xóa ${keysToRemove.length} mục lịch sử?`)) return;
-
-                for (const key of keysToRemove) {
-                    await remove(ref(db, `rooms/${ROOM_ID}/history/${key}`));
-                }
-
-                showToast(`🗑️ Đã xóa ${keysToRemove.length} mục lịch sử`, 'success');
-
+                leaderboardList.innerHTML = data.map((item, index) => {
+                    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+                    return `
+                        <div class="lb-item">
+                            <span class="lb-rank">${medal}</span>
+                            <span class="lb-name">${item.name}</span>
+                            <span class="lb-rate">💰${item.balance}</span>
+                            ${item.winRate ? `<span class="lb-winrate">🏆${item.winRate}%</span>` : ''}
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
-                console.error('Clear history error:', error);
-                showToast('❌ Lỗi: ' + error.message, 'error');
+                console.error('Leaderboard error:', error);
             }
-        });
+        }
 
         // =====================================================
-        // XÓA CHAT
+        // SET BET
         // =====================================================
-        clearChatBtn.addEventListener('click', async () => {
-            try {
-                const action = chatAction.value;
-                let count = parseInt(chatCount.value) || 5;
-
-                const chatRef = ref(db, `rooms/${ROOM_ID}/chat`);
-                const snapshot = await get(chatRef);
-                if (!snapshot.exists()) {
-                    showToast('ℹ️ Không có tin nhắn để xóa', 'info');
-                    return;
-                }
-
-                const chat = snapshot.val();
-                const keys = Object.keys(chat);
-
-                if (keys.length === 0) {
-                    showToast('ℹ️ Không có tin nhắn để xóa', 'info');
-                    return;
-                }
-
-                let keysToRemove = [];
-
-                switch (action) {
-                    case 'all':
-                        keysToRemove = keys;
-                        break;
-                    case 'last5':
-                        keysToRemove = keys.slice(-5);
-                        break;
-                    case 'last10':
-                        keysToRemove = keys.slice(-10);
-                        break;
-                    case 'last20':
-                        keysToRemove = keys.slice(-20);
-                        break;
-                    case 'custom':
-                        const customCount = Math.min(count, keys.length);
-                        keysToRemove = keys.slice(-customCount);
-                        break;
-                    default:
-                        keysToRemove = keys;
-                }
-
-                if (keysToRemove.length === 0) {
-                    showToast('ℹ️ Không có gì để xóa', 'info');
-                    return;
-                }
-
-                if (!confirm(`Bạn có chắc muốn xóa ${keysToRemove.length} tin nhắn?`)) return;
-
-                for (const key of keysToRemove) {
-                    await remove(ref(db, `rooms/${ROOM_ID}/chat/${key}`));
-                }
-
-                showToast(`🗑️ Đã xóa ${keysToRemove.length} tin nhắn`, 'success');
-
-            } catch (error) {
-                console.error('Clear chat error:', error);
-                showToast('❌ Lỗi: ' + error.message, 'error');
-            }
-        });
+        window.setBet = function(amount) {
+            betAmountInput.value = amount;
+        };
 
         // =====================================================
-        // HIỂN THỊ INPUT COUNT KHI CHỌN CUSTOM
+        // EVENTS CHO NÚT CƯỢC
         // =====================================================
-        historyAction.addEventListener('change', () => {
-            historyCount.style.display = historyAction.value === 'custom' ? 'inline-block' : 'none';
-        });
-
-        chatAction.addEventListener('change', () => {
-            chatCount.style.display = chatAction.value === 'custom' ? 'inline-block' : 'none';
-        });
+        betCao.addEventListener('click', () => placeBet('cao'));
+        betThap.addEventListener('click', () => placeBet('thap'));
 
         // =====================================================
         // INIT
         // =====================================================
-        console.log('🔧 Admin Panel started!');
-        console.log('📁 Database path: /rooms/' + ROOM_ID + '/players');
-        loadData();
+        console.log('🎲 Vui Cùng Xúc Xắc - Client started!');
+        console.log(`📡 Worker URL: ${WORKER_URL}`);
+
+        if (auth.currentUser) {
+            loginModal.style.display = 'none';
+        }
     </script>
 </body>
 </html>

@@ -92,7 +92,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.85);
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 9999;
@@ -1316,6 +1316,19 @@
         function listenRoom() {
             const roomRef = ref(db, `rooms/${ROOM_ID}`);
 
+            // === LẮNG NGHE TIMER TỪ FIREBASE ===
+            const timerRef = ref(db, `rooms/${ROOM_ID}/timer`);
+            onValue(timerRef, (snapshot) => {
+                const timerValue = snapshot.val();
+                if (timerValue !== null && timerValue !== undefined) {
+                    timerDisplay.textContent = timerValue;
+                    if (isGameActive && !isRolling && !isWaitingForResult && !isTimerRunning) {
+                        startTimerFromFirebase(timerValue);
+                    }
+                }
+            });
+
+            // === LẮNG NGHE TOÀN BỘ ROOM ===
             onValue(roomRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) {
@@ -1331,18 +1344,6 @@
                 if (data.turn !== undefined) {
                     currentTurn = data.turn;
                     turnNumber.textContent = currentTurn;
-                }
-
-                // === LẮNG NGHE TIMER TỪ HOST ===
-                if (data.timer !== undefined && data.timer !== null) {
-                    const newTimer = data.timer;
-                    if (data.status === 'betting' && data.gameActive && !isTimerRunning && !isWaitingForResult) {
-                        startTimerFromFirebase(newTimer);
-                    }
-                    // Nếu timer đang chạy, cập nhật hiển thị
-                    if (isTimerRunning) {
-                        // Không làm gì, timer tự chạy
-                    }
                 }
 
                 if (data.status === 'rolling' && data.result) {

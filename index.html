@@ -92,22 +92,6 @@
             transform: scale(1.05);
             box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
         }
-        .btn-host {
-            background: linear-gradient(45deg, #e74c3c, #c0392b);
-            color: #fff;
-            font-size: 18px;
-            padding: 12px 30px;
-        }
-        .btn-host:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(231, 76, 60, 0.5);
-        }
-        .btn-host:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
 
         /* ===== LOGIN MODAL ===== */
         .login-modal {
@@ -184,6 +168,12 @@
         }
         .login-modal .modal-content .error-msg {
             color: #ff4757;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+        .login-modal .modal-content .success-msg {
+            color: #2ecc71;
             font-size: 14px;
             margin-top: 10px;
             display: none;
@@ -300,10 +290,6 @@
             color: #ffd700;
             min-width: 50px;
             text-align: center;
-        }
-        .room-info .turn-label {
-            color: #ffd700;
-            font-weight: bold;
         }
         .dice-area {
             text-align: center;
@@ -753,30 +739,15 @@
             }
         }
 
-        .host-controls {
-            background: rgba(231, 76, 60, 0.1);
-            border: 2px solid #e74c3c;
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .host-controls .host-label {
-            color: #e74c3c;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        .host-controls .host-label span {
-            background: #e74c3c;
-            color: #fff;
-            padding: 2px 10px;
+        .turn-display {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #ffd700;
             border-radius: 10px;
-            font-size: 12px;
-            margin-left: 5px;
+            padding: 8px 15px;
+            text-align: center;
+            font-size: 14px;
+            color: #ffd700;
+            margin-bottom: 15px;
         }
 
         @media (max-width: 1024px) {
@@ -819,10 +790,6 @@
                 flex-direction: column;
                 align-items: center;
             }
-            .host-controls {
-                flex-direction: column;
-                text-align: center;
-            }
         }
     </style>
 </head>
@@ -836,6 +803,7 @@
             <input type="text" id="nicknameInput" placeholder="Nhập biệt danh của bạn..." maxlength="20" autofocus />
             <button class="btn btn-success" id="loginNickBtn">🎮 Vào chơi</button>
             <div class="error-msg" id="loginError">Vui lòng nhập biệt danh!</div>
+            <div class="success-msg" id="loginSuccess">Đăng nhập thành công!</div>
         </div>
     </div>
 
@@ -881,20 +849,6 @@
         </div>
     </header>
 
-    <!-- ===== HOST CONTROLS ===== -->
-    <div class="container" style="max-width:1400px; margin:0 auto; padding:0 20px;">
-        <div class="host-controls" id="hostControls">
-            <div class="host-label">
-                🎯 Host <span>Quyền điều khiển</span>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                <span id="turnDisplay" style="color:#fff; font-weight:bold;">Lượt: <span id="turnNumber">0</span></span>
-                <button class="btn btn-host" id="nextTurnBtn">▶️ Lượt tiếp theo</button>
-                <button class="btn btn-warning" id="resetGameBtn" style="background:#e67e22;">🔄 Reset game</button>
-            </div>
-        </div>
-    </div>
-
     <!-- ===== GAME ===== -->
     <div class="game-container">
         <!-- LEFT -->
@@ -904,6 +858,10 @@
                 <span>👥 <span id="playerCount">0</span>/50</span>
                 <span>⏱️ <span id="timerDisplay" class="timer">30</span>s</span>
                 <span id="statusDisplay" style="color:#3498db;">⏳ Đang chờ...</span>
+            </div>
+
+            <div class="turn-display" id="turnDisplay">
+                🎯 Lượt chơi: <span id="turnNumber">0</span>
             </div>
 
             <div class="dice-area">
@@ -988,7 +946,7 @@
         // IMPORT FIREBASE MODULES
         // =====================================================
         import { initializeApp } from "firebase/app";
-        import { getDatabase, ref, onValue, set, get, remove, push } from "firebase/database";
+        import { getDatabase, ref, onValue, set, get, remove } from "firebase/database";
 
         // =====================================================
         // FIREBASE CONFIG
@@ -1012,7 +970,7 @@
         // =====================================================
         const ROOM_ID = 'public_room';
         const WORKER_URL = 'https://xuc-xac-api.worldoftankblizt1234.workers.dev';
-        const WIN_SCORE = 5000; // Điểm để đạt Top
+        const WIN_SCORE = 5000;
 
         // =====================================================
         // DOM REFS
@@ -1022,6 +980,7 @@
         const nicknameInput = document.getElementById('nicknameInput');
         const loginNickBtn = document.getElementById('loginNickBtn');
         const loginError = document.getElementById('loginError');
+        const loginSuccess = document.getElementById('loginSuccess');
         const guideConfirmBtn = document.getElementById('guideConfirmBtn');
         const userNameDisplay = document.getElementById('userNameDisplay');
         const logoutBtn = document.getElementById('logoutBtn');
@@ -1029,6 +988,7 @@
         const playerCount = document.getElementById('playerCount');
         const timerDisplay = document.getElementById('timerDisplay');
         const statusDisplay = document.getElementById('statusDisplay');
+        const turnNumber = document.getElementById('turnNumber');
         const dice1 = document.getElementById('dice1');
         const dice2 = document.getElementById('dice2');
         const dice3 = document.getElementById('dice3');
@@ -1043,10 +1003,6 @@
         const betCao = document.getElementById('betCao');
         const betThap = document.getElementById('betThap');
         const toastContainer = document.getElementById('toastContainer');
-        const hostControls = document.getElementById('hostControls');
-        const nextTurnBtn = document.getElementById('nextTurnBtn');
-        const resetGameBtn = document.getElementById('resetGameBtn');
-        const turnNumber = document.getElementById('turnNumber');
 
         // =====================================================
         // STATE
@@ -1062,9 +1018,8 @@
         let timer = 30;
         let timerInterval = null;
         let isLoggedIn = false;
-        let isHost = false;
-        let currentTurn = 0;
         let isGameActive = false;
+        let currentTurn = 0;
 
         // =====================================================
         // TOAST
@@ -1106,17 +1061,37 @@
         }
 
         // =====================================================
-        // GENERATE PLAYER ID
+        // FIND PLAYER BY NICKNAME
+        // =====================================================
+        async function findPlayerByNickname(nickname) {
+            try {
+                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+                const snapshot = await get(playersRef);
+                if (!snapshot.exists()) return null;
+
+                const players = snapshot.val();
+                for (const [pid, data] of Object.entries(players)) {
+                    if (data.name && data.name.toLowerCase() === nickname.toLowerCase()) {
+                        return { id: pid, data: data };
+                    }
+                }
+                return null;
+            } catch (error) {
+                console.error('Lỗi tìm người chơi:', error);
+                return null;
+            }
+        }
+
+        // =====================================================
+        // CREATE NEW PLAYER
         // =====================================================
         function generatePlayerId() {
             return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         }
 
-        // =====================================================
-        // SAVE PLAYER
-        // =====================================================
-        async function savePlayerToDatabase(playerId, nickname) {
+        async function createNewPlayer(nickname) {
             try {
+                const playerId = generatePlayerId();
                 const playerRef = ref(db, `rooms/${ROOM_ID}/players/${playerId}`);
                 const playerData = {
                     name: nickname,
@@ -1129,30 +1104,10 @@
                     hasBetted: false
                 };
                 await set(playerRef, playerData);
-                return true;
+                return { id: playerId, data: playerData };
             } catch (error) {
-                console.error('Lỗi lưu người chơi:', error);
-                return false;
-            }
-        }
-
-        // =====================================================
-        // CHECK NICKNAME EXISTS
-        // =====================================================
-        async function isNicknameExists(nickname) {
-            try {
-                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
-                const snapshot = await get(playersRef);
-                if (!snapshot.exists()) return false;
-                const players = snapshot.val();
-                for (const [key, value] of Object.entries(players)) {
-                    if (value.name && value.name.toLowerCase() === nickname.toLowerCase()) {
-                        return true;
-                    }
-                }
-                return false;
-            } catch (error) {
-                return false;
+                console.error('Lỗi tạo người chơi:', error);
+                return null;
             }
         }
 
@@ -1163,63 +1118,50 @@
             if (!nickname || nickname.trim() === '') {
                 loginError.style.display = 'block';
                 loginError.textContent = 'Vui lòng nhập biệt danh!';
+                loginSuccess.style.display = 'none';
                 return;
             }
 
             loginError.style.display = 'none';
+            loginSuccess.style.display = 'none';
             loginNickBtn.disabled = true;
             loginNickBtn.textContent = 'Đang đăng nhập...';
 
             try {
-                const exists = await isNicknameExists(nickname.trim());
-                if (exists) {
-                    loginError.style.display = 'block';
-                    loginError.textContent = 'Biệt danh này đã được sử dụng! Vui lòng chọn tên khác.';
-                    loginNickBtn.disabled = false;
-                    loginNickBtn.textContent = '🎮 Vào chơi';
-                    return;
+                // Tìm người chơi theo tên
+                const existingPlayer = await findPlayerByNickname(nickname.trim());
+
+                let playerId, playerData;
+
+                if (existingPlayer) {
+                    // Đăng nhập vào tài khoản cũ
+                    playerId = existingPlayer.id;
+                    playerData = existingPlayer.data;
+                    showToast(`👋 Chào mừng trở lại ${playerData.name}!`, 'success');
+                    loginSuccess.style.display = 'block';
+                    loginSuccess.textContent = '👋 Chào mừng trở lại!';
+                } else {
+                    // Tạo tài khoản mới
+                    const newPlayer = await createNewPlayer(nickname.trim());
+                    if (!newPlayer) {
+                        throw new Error('Không thể tạo tài khoản mới');
+                    }
+                    playerId = newPlayer.id;
+                    playerData = newPlayer.data;
+                    showToast(`🎉 Chào mừng ${playerData.name} mới!`, 'success');
+                    loginSuccess.style.display = 'block';
+                    loginSuccess.textContent = '🎉 Tạo tài khoản thành công!';
                 }
 
-                const playerId = generatePlayerId();
-                await savePlayerToDatabase(playerId, nickname.trim());
-
+                // Cập nhật state
                 currentPlayerId = playerId;
-                currentNickname = nickname.trim();
+                currentNickname = playerData.name;
+                userBalance = playerData.balance || 1000;
                 isLoggedIn = true;
 
                 userNameDisplay.textContent = `👤 ${currentNickname}`;
                 logoutBtn.style.display = 'inline-block';
                 loginModal.style.display = 'none';
-
-                // Kiểm tra host (người đầu tiên vào là host)
-                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
-                const snapshot = await get(playersRef);
-                const players = snapshot.val() || {};
-                const playerCounts = Object.keys(players).length;
-
-                if (playerCounts === 1) {
-                    isHost = true;
-                    hostControls.style.display = 'flex';
-                    showToast('🎯 Bạn là HOST! Điều khiển game.', 'success');
-                    await set(ref(db, `rooms/${ROOM_ID}/host`), playerId);
-                    await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
-                    await set(ref(db, `rooms/${ROOM_ID}/turn`), 0);
-                } else {
-                    // Kiểm tra xem đã có host chưa
-                    const hostSnapshot = await get(ref(db, `rooms/${ROOM_ID}/host`));
-                    if (hostSnapshot.exists()) {
-                        isHost = false;
-                        hostControls.style.display = 'none';
-                    } else {
-                        // Nếu chưa có host, người này làm host
-                        isHost = true;
-                        hostControls.style.display = 'flex';
-                        showToast('🎯 Bạn là HOST! Điều khiển game.', 'success');
-                        await set(ref(db, `rooms/${ROOM_ID}/host`), playerId);
-                    }
-                }
-
-                showToast(`Chào mừng ${currentNickname}!`, 'success');
 
                 await createDatabaseStructure();
                 await joinRoom();
@@ -1227,6 +1169,10 @@
 
                 // Hiển thị guide
                 guideModal.style.display = 'flex';
+
+                setTimeout(() => {
+                    loginSuccess.style.display = 'none';
+                }, 3000);
 
             } catch (error) {
                 console.error('Login error:', error);
@@ -1256,7 +1202,6 @@
                 logoutBtn.style.display = 'none';
                 loginModal.style.display = 'flex';
                 guideModal.style.display = 'none';
-                hostControls.style.display = 'none';
                 showToast('Đã đăng xuất!', 'info');
                 location.reload();
             } catch (error) {
@@ -1339,7 +1284,6 @@
                 myBetChoice = choice;
                 myBetAmount = amount;
 
-                // Highlight đã cược
                 document.querySelectorAll('.bet-option').forEach(el => {
                     el.classList.remove('selected');
                     if (el.classList.contains(choice)) {
@@ -1347,7 +1291,6 @@
                     }
                 });
 
-                // Disable các nút cược
                 document.querySelectorAll('.bet-option').forEach(el => {
                     el.classList.add('disabled');
                 });
@@ -1358,116 +1301,6 @@
 
             } catch (error) {
                 showToast('Đặt cược thất bại: ' + error.message, 'error');
-            }
-        }
-
-        // =====================================================
-        // NEXT TURN - HOST
-        // =====================================================
-        async function nextTurn() {
-            if (!isHost) {
-                showToast('⚠️ Chỉ Host mới có quyền!', 'error');
-                return;
-            }
-
-            try {
-                // Kiểm tra xem có người chơi nào chưa cược không
-                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
-                const snapshot = await get(playersRef);
-                const players = snapshot.val() || {};
-
-                // Reset trạng thái cược
-                for (const [pid, data] of Object.entries(players)) {
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/hasBetted`), false);
-                }
-
-                // Cập nhật lượt
-                currentTurn += 1;
-                await set(ref(db, `rooms/${ROOM_ID}/turn`), currentTurn);
-                turnNumber.textContent = currentTurn;
-
-                // Kích hoạt game
-                await set(ref(db, `rooms/${ROOM_ID}/gameActive`), true);
-                await set(ref(db, `rooms/${ROOM_ID}/status`), 'betting');
-
-                // Reset UI
-                hasBetted = false;
-                myBetChoice = null;
-                myBetAmount = 0;
-
-                document.querySelectorAll('.bet-option').forEach(el => {
-                    el.classList.remove('selected', 'betted', 'disabled');
-                });
-                document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = false);
-                betAmountInput.disabled = false;
-
-                // Bắt đầu timer
-                startTimer();
-
-                // Vô hiệu hóa nút next turn
-                nextTurnBtn.disabled = true;
-                nextTurnBtn.textContent = '⏳ Đang chờ...';
-
-                showToast(`🎯 Lượt ${currentTurn} bắt đầu! Hãy đặt cược.`, 'success');
-
-            } catch (error) {
-                console.error('Next turn error:', error);
-                showToast('Lỗi: ' + error.message, 'error');
-            }
-        }
-
-        // =====================================================
-        // RESET GAME
-        // =====================================================
-        async function resetGame() {
-            if (!isHost) {
-                showToast('⚠️ Chỉ Host mới có quyền!', 'error');
-                return;
-            }
-
-            if (!confirm('Bạn có chắc muốn reset toàn bộ game? Tất cả dữ liệu sẽ bị xóa!')) return;
-
-            try {
-                // Xóa lịch sử
-                await set(ref(db, `rooms/${ROOM_ID}/history`), {});
-                // Reset kết quả
-                await set(ref(db, `rooms/${ROOM_ID}/result`), null);
-                // Reset lượt
-                await set(ref(db, `rooms/${ROOM_ID}/turn`), 0);
-                currentTurn = 0;
-                turnNumber.textContent = '0';
-
-                // Reset tất cả người chơi
-                const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
-                const snapshot = await get(playersRef);
-                const players = snapshot.val() || {};
-                for (const [pid, data] of Object.entries(players)) {
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/balance`), 1000);
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/bet_choice`), null);
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/bet_amount`), 0);
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/wins`), 0);
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/totalGames`), 0);
-                    await set(ref(db, `rooms/${ROOM_ID}/players/${pid}/hasBetted`), false);
-                }
-
-                await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
-                await set(ref(db, `rooms/${ROOM_ID}/status`), 'waiting');
-
-                showToast('🔄 Đã reset game!', 'success');
-
-                // Reset UI
-                document.querySelectorAll('.dice').forEach(el => el.textContent = '⚀');
-                resultText.textContent = '⏳ Chọn cửa cược!';
-                resultText.className = 'result-text betting';
-                totalText.textContent = '';
-                historyList.innerHTML = '<span>Chưa có dữ liệu</span>';
-
-                nextTurnBtn.disabled = false;
-                nextTurnBtn.textContent = '▶️ Lượt tiếp theo';
-
-            } catch (error) {
-                console.error('Reset error:', error);
-                showToast('Lỗi reset: ' + error.message, 'error');
             }
         }
 
@@ -1504,20 +1337,13 @@
                     resultText.textContent = '🎲 Đang lắc xúc xắc...';
                     resultText.className = 'result-text rolling';
 
-                    // Tất cả người chơi chưa cược sẽ mất lượt
                     await callAPI('roll', 'POST');
 
-                    // Sau 3s reset
                     setTimeout(async () => {
                         await callAPI('reset', 'POST');
                         await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
                         await set(ref(db, `rooms/${ROOM_ID}/status`), 'waiting');
 
-                        // Kích hoạt nút next turn
-                        nextTurnBtn.disabled = false;
-                        nextTurnBtn.textContent = '▶️ Lượt tiếp theo';
-
-                        // Reset UI cược
                         document.querySelectorAll('.bet-option').forEach(el => {
                             el.classList.remove('selected', 'betted', 'disabled');
                         });
@@ -1571,16 +1397,8 @@
                 const players = data.players || {};
                 playerCount.textContent = Object.keys(players).length;
 
-                // Cập nhật host
-                if (data.host) {
-                    isHost = (data.host === currentPlayerId);
-                    hostControls.style.display = isHost ? 'flex' : 'none';
-                }
-
-                // Cập nhật game active
                 isGameActive = data.gameActive || false;
 
-                // Cập nhật lượt
                 if (data.turn !== undefined) {
                     currentTurn = data.turn;
                     turnNumber.textContent = currentTurn;
@@ -1604,7 +1422,6 @@
                     myBetChoice = playerData.bet_choice || null;
                     myBetAmount = playerData.bet_amount || 0;
 
-                    // Nếu đã cược, disable UI
                     if (hasBetted) {
                         document.querySelectorAll('.bet-option').forEach(el => {
                             el.classList.add('disabled');
@@ -1622,11 +1439,9 @@
                         betAmountInput.disabled = false;
                     }
 
-                    // Kiểm tra top
                     checkTopPlayers(players);
                 }
 
-                // Kiểm tra trạng thái
                 if (data.status === 'waiting' && !data.gameActive) {
                     statusDisplay.textContent = '⏳ Chờ host bắt đầu...';
                     statusDisplay.style.color = '#95a5a6';
@@ -1658,7 +1473,6 @@
                 }
             });
 
-            // Leaderboard
             setInterval(updateLeaderboard, 10000);
             updateLeaderboard();
         }
@@ -1670,11 +1484,6 @@
             const entries = Object.entries(players);
             const sorted = entries.sort((a, b) => (b[1].balance || 0) - (a[1].balance || 0));
 
-            const top1 = sorted[0];
-            const top2 = sorted[1];
-            const top3 = sorted[2];
-
-            // Chỉ thông báo khi có người đạt WIN_SCORE
             sorted.forEach(([pid, data], index) => {
                 if (data.balance >= WIN_SCORE && index < 3) {
                     const rank = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
@@ -1850,16 +1659,11 @@
 
         guideConfirmBtn.addEventListener('click', () => {
             guideModal.style.display = 'none';
-            if (isHost) {
-                showToast('🎯 Bạn là Host! Bấm "Lượt tiếp theo" để bắt đầu.', 'info');
-            }
+            showToast('🎯 Vào game! Chờ host bắt đầu.', 'info');
         });
 
         betCao.addEventListener('click', () => placeBet('cao'));
         betThap.addEventListener('click', () => placeBet('thap'));
-
-        nextTurnBtn.addEventListener('click', nextTurn);
-        resetGameBtn.addEventListener('click', resetGame);
 
         // =====================================================
         // INIT
@@ -1867,6 +1671,7 @@
         console.log('🎲 Vui Cùng Xúc Xắc - Client started!');
         console.log(`📡 Worker URL: ${WORKER_URL}`);
         console.log('🏆 Điểm để đạt Top:', WIN_SCORE);
+        console.log('🔑 Đăng nhập bằng biệt danh - Tự động vào đúng tài khoản');
     </script>
 </body>
 </html>

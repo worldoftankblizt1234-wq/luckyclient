@@ -84,16 +84,7 @@
             transform: scale(1.05);
             box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
         }
-        .btn-warning {
-            background: #f39c12;
-            color: #fff;
-        }
-        .btn-warning:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
-        }
 
-        /* ===== LOGIN MODAL ===== */
         .login-modal {
             position: fixed;
             top: 0;
@@ -179,7 +170,6 @@
             display: none;
         }
 
-        /* ===== GUIDE MODAL ===== */
         .guide-modal {
             position: fixed;
             top: 0;
@@ -257,7 +247,6 @@
             border-radius: 10px;
         }
 
-        /* ===== GAME ===== */
         .game-container {
             display: grid;
             grid-template-columns: 70% 30%;
@@ -750,6 +739,16 @@
             margin-bottom: 15px;
         }
 
+        .url-login-badge {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            border-radius: 10px;
+            padding: 4px 12px;
+            font-size: 12px;
+            color: #2ecc71;
+            display: none;
+        }
+
         @media (max-width: 1024px) {
             .game-container {
                 grid-template-columns: 1fr;
@@ -796,7 +795,7 @@
 <body>
 
     <!-- ===== LOGIN MODAL ===== -->
-    <div class="login-modal" id="loginModal">
+    <div class="login-modal" id="loginModal" style="display:none;">
         <div class="modal-content">
             <h2>🎲 Vui Cùng Xúc Xắc</h2>
             <p class="sub-title">Nhập biệt danh để bắt đầu chơi!</p>
@@ -845,13 +844,13 @@
         <div class="logo">🎲 Vui Cùng Xúc Xắc</div>
         <div class="user-info">
             <span id="userNameDisplay">👤 Chưa đăng nhập</span>
+            <span class="url-login-badge" id="urlLoginBadge">🔗 Đăng nhập qua link</span>
             <button class="btn btn-danger" id="logoutBtn" style="display:none">Đăng xuất</button>
         </div>
     </header>
 
     <!-- ===== GAME ===== -->
     <div class="game-container">
-        <!-- LEFT -->
         <div class="game-left">
             <div class="room-info">
                 <span>🏠 Phòng: <strong id="roomIdDisplay">Đang tải...</strong></span>
@@ -914,7 +913,6 @@
             </div>
         </div>
 
-        <!-- RIGHT -->
         <div class="game-right">
             <div class="chat-box">
                 <div class="chat-header">💬 Trò chuyện</div>
@@ -942,15 +940,9 @@
     <!-- MAIN SCRIPT -->
     <!-- ============================================================ -->
     <script type="module">
-        // =====================================================
-        // IMPORT FIREBASE MODULES
-        // =====================================================
         import { initializeApp } from "firebase/app";
         import { getDatabase, ref, onValue, set, get, remove } from "firebase/database";
 
-        // =====================================================
-        // FIREBASE CONFIG
-        // =====================================================
         const firebaseConfig = {
             apiKey: "AIzaSyBvKVqzcPXeZ5ryh69-ig1D7N6arVA28O4",
             authDomain: "lucky-2dbaa.firebaseapp.com",
@@ -965,16 +957,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // =====================================================
-        // CONFIG
-        // =====================================================
         const ROOM_ID = 'public_room';
         const WORKER_URL = 'https://xuc-xac-api.worldoftankblizt1234.workers.dev';
-        const WIN_SCORE = 5000;
 
-        // =====================================================
         // DOM REFS
-        // =====================================================
         const loginModal = document.getElementById('loginModal');
         const guideModal = document.getElementById('guideModal');
         const nicknameInput = document.getElementById('nicknameInput');
@@ -984,6 +970,7 @@
         const guideConfirmBtn = document.getElementById('guideConfirmBtn');
         const userNameDisplay = document.getElementById('userNameDisplay');
         const logoutBtn = document.getElementById('logoutBtn');
+        const urlLoginBadge = document.getElementById('urlLoginBadge');
         const roomIdDisplay = document.getElementById('roomIdDisplay');
         const playerCount = document.getElementById('playerCount');
         const timerDisplay = document.getElementById('timerDisplay');
@@ -1004,13 +991,10 @@
         const betThap = document.getElementById('betThap');
         const toastContainer = document.getElementById('toastContainer');
 
-        // =====================================================
         // STATE
-        // =====================================================
         let currentPlayerId = null;
         let currentNickname = '';
         let userBalance = 1000;
-        let isBetting = false;
         let isRolling = false;
         let myBetChoice = null;
         let myBetAmount = 0;
@@ -1020,10 +1004,16 @@
         let isLoggedIn = false;
         let isGameActive = false;
         let currentTurn = 0;
+        let isWaitingForResult = false;
+        let isTimerRunning = false;
 
-        // =====================================================
-        // TOAST
-        // =====================================================
+        // ===== LẤY TÊN TỪ URL =====
+        function getNicknameFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('name');
+        }
+
+        // ===== TOAST =====
         function showToast(message, type = 'info') {
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
@@ -1036,23 +1026,14 @@
             }, 3000);
         }
 
-        // =====================================================
-        // API HELPER
-        // =====================================================
+        // ===== API HELPER =====
         async function callAPI(endpoint, method = 'GET', data = null) {
             try {
-                const options = {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' }
-                };
-                if (data) {
-                    options.body = JSON.stringify(data);
-                }
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (data) options.body = JSON.stringify(data);
                 const response = await fetch(`${WORKER_URL}/api/${endpoint}`, options);
                 const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error || 'API Error');
-                }
+                if (!response.ok) throw new Error(result.error || 'API Error');
                 return result;
             } catch (error) {
                 console.error('API Error:', error);
@@ -1060,15 +1041,12 @@
             }
         }
 
-        // =====================================================
-        // FIND PLAYER BY NICKNAME
-        // =====================================================
+        // ===== FIND PLAYER =====
         async function findPlayerByNickname(nickname) {
             try {
                 const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
                 const snapshot = await get(playersRef);
                 if (!snapshot.exists()) return null;
-
                 const players = snapshot.val();
                 for (const [pid, data] of Object.entries(players)) {
                     if (data.name && data.name.toLowerCase() === nickname.toLowerCase()) {
@@ -1082,9 +1060,6 @@
             }
         }
 
-        // =====================================================
-        // CREATE NEW PLAYER
-        // =====================================================
         function generatePlayerId() {
             return 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
         }
@@ -1111,9 +1086,7 @@
             }
         }
 
-        // =====================================================
-        // LOGIN
-        // =====================================================
+        // ===== LOGIN =====
         async function loginWithNickname(nickname) {
             if (!nickname || nickname.trim() === '') {
                 loginError.style.display = 'block';
@@ -1128,24 +1101,18 @@
             loginNickBtn.textContent = 'Đang đăng nhập...';
 
             try {
-                // Tìm người chơi theo tên
                 const existingPlayer = await findPlayerByNickname(nickname.trim());
-
                 let playerId, playerData;
 
                 if (existingPlayer) {
-                    // Đăng nhập vào tài khoản cũ
                     playerId = existingPlayer.id;
                     playerData = existingPlayer.data;
                     showToast(`👋 Chào mừng trở lại ${playerData.name}!`, 'success');
                     loginSuccess.style.display = 'block';
                     loginSuccess.textContent = '👋 Chào mừng trở lại!';
                 } else {
-                    // Tạo tài khoản mới
                     const newPlayer = await createNewPlayer(nickname.trim());
-                    if (!newPlayer) {
-                        throw new Error('Không thể tạo tài khoản mới');
-                    }
+                    if (!newPlayer) throw new Error('Không thể tạo tài khoản mới');
                     playerId = newPlayer.id;
                     playerData = newPlayer.data;
                     showToast(`🎉 Chào mừng ${playerData.name} mới!`, 'success');
@@ -1153,7 +1120,6 @@
                     loginSuccess.textContent = '🎉 Tạo tài khoản thành công!';
                 }
 
-                // Cập nhật state
                 currentPlayerId = playerId;
                 currentNickname = playerData.name;
                 userBalance = playerData.balance || 1000;
@@ -1166,13 +1132,9 @@
                 await createDatabaseStructure();
                 await joinRoom();
                 listenRoom();
-
-                // Hiển thị guide
                 guideModal.style.display = 'flex';
 
-                setTimeout(() => {
-                    loginSuccess.style.display = 'none';
-                }, 3000);
+                setTimeout(() => { loginSuccess.style.display = 'none'; }, 3000);
 
             } catch (error) {
                 console.error('Login error:', error);
@@ -1183,9 +1145,7 @@
             }
         }
 
-        // =====================================================
-        // LOGOUT
-        // =====================================================
+        // ===== LOGOUT =====
         async function logout() {
             try {
                 if (currentPlayerId) {
@@ -1203,15 +1163,16 @@
                 loginModal.style.display = 'flex';
                 guideModal.style.display = 'none';
                 showToast('Đã đăng xuất!', 'info');
+                const url = new URL(window.location);
+                url.searchParams.delete('name');
+                window.history.replaceState({}, '', url);
                 location.reload();
             } catch (error) {
                 console.error('Logout error:', error);
             }
         }
 
-        // =====================================================
-        // CREATE DATABASE STRUCTURE
-        // =====================================================
+        // ===== CREATE DATABASE =====
         async function createDatabaseStructure() {
             try {
                 const roomRef = ref(db, `rooms/${ROOM_ID}`);
@@ -1238,9 +1199,7 @@
             }
         }
 
-        // =====================================================
-        // PLACE BET
-        // =====================================================
+        // ===== PLACE BET =====
         async function placeBet(choice) {
             if (!isLoggedIn || !currentPlayerId) {
                 showToast('Vui lòng đăng nhập!', 'error');
@@ -1248,7 +1207,7 @@
             }
 
             if (hasBetted) {
-                showToast('⚠️ Bạn đã đặt cược rồi! Chờ host bấm lượt tiếp theo.', 'warning');
+                showToast('⚠️ Bạn đã đặt cược rồi!', 'warning');
                 return;
             }
 
@@ -1258,7 +1217,7 @@
             }
 
             if (isRolling) {
-                showToast('🎲 Đang lắc xúc xắc, chờ kết quả!', 'warning');
+                showToast('🎲 Đang lắc xúc xắc!', 'warning');
                 return;
             }
 
@@ -1267,7 +1226,6 @@
                 showToast('Không đủ điểm!', 'error');
                 return;
             }
-
             if (amount < 10) {
                 showToast('Cược tối thiểu 10 điểm!', 'error');
                 return;
@@ -1290,38 +1248,33 @@
                         el.classList.add('betted');
                     }
                 });
-
-                document.querySelectorAll('.bet-option').forEach(el => {
-                    el.classList.add('disabled');
-                });
+                document.querySelectorAll('.bet-option').forEach(el => el.classList.add('disabled'));
                 document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = true);
                 betAmountInput.disabled = true;
 
-                showToast(`✅ Đã đặt cược ${amount} điểm vào ${choice.toUpperCase()}`, 'success');
+                showToast(`✅ Đã cược ${amount} điểm vào ${choice.toUpperCase()}`, 'success');
 
             } catch (error) {
                 showToast('Đặt cược thất bại: ' + error.message, 'error');
             }
         }
 
-        // =====================================================
-        // TIMER
-        // =====================================================
-        function startTimer() {
+        // ===== TIMER =====
+        function startTimerFromFirebase(seconds) {
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
             }
 
-            timer = 30;
+            timer = seconds;
             timerDisplay.textContent = timer;
-            isBetting = true;
-            isRolling = false;
-
             statusDisplay.textContent = '⏳ Đang đặt cược';
             statusDisplay.style.color = '#3498db';
             resultText.textContent = '⏳ Chọn cửa cược!';
             resultText.className = 'result-text betting';
+
+            isWaitingForResult = false;
+            isTimerRunning = true;
 
             timerInterval = setInterval(async () => {
                 timer = timer - 1;
@@ -1330,41 +1283,21 @@
                 if (timer <= 0) {
                     clearInterval(timerInterval);
                     timerInterval = null;
-                    isBetting = false;
+                    isTimerRunning = false;
 
                     statusDisplay.textContent = '🎲 Đang lắc...';
                     statusDisplay.style.color = '#f1c40f';
                     resultText.textContent = '🎲 Đang lắc xúc xắc...';
                     resultText.className = 'result-text rolling';
 
+                    isWaitingForResult = true;
+
                     await callAPI('roll', 'POST');
-
-                    setTimeout(async () => {
-                        await callAPI('reset', 'POST');
-                        await set(ref(db, `rooms/${ROOM_ID}/gameActive`), false);
-                        await set(ref(db, `rooms/${ROOM_ID}/status`), 'waiting');
-
-                        document.querySelectorAll('.bet-option').forEach(el => {
-                            el.classList.remove('selected', 'betted', 'disabled');
-                        });
-                        document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = false);
-                        betAmountInput.disabled = false;
-                        hasBetted = false;
-
-                        statusDisplay.textContent = '⏳ Chờ host bắt đầu lượt mới';
-                        statusDisplay.style.color = '#95a5a6';
-                        resultText.textContent = '⏳ Chờ host...';
-                        resultText.className = 'result-text waiting';
-
-                        showToast('⏳ Kết thúc lượt! Chờ host bấm tiếp.', 'info');
-                    }, 3000);
                 }
             }, 1000);
         }
 
-        // =====================================================
-        // JOIN ROOM
-        // =====================================================
+        // ===== JOIN ROOM =====
         async function joinRoom() {
             if (!currentPlayerId) return;
             try {
@@ -1379,9 +1312,7 @@
             }
         }
 
-        // =====================================================
-        // LISTEN ROOM
-        // =====================================================
+        // ===== LISTEN ROOM =====
         function listenRoom() {
             const roomRef = ref(db, `rooms/${ROOM_ID}`);
 
@@ -1393,20 +1324,35 @@
                 }
 
                 roomIdDisplay.textContent = ROOM_ID;
-
                 const players = data.players || {};
                 playerCount.textContent = Object.keys(players).length;
 
                 isGameActive = data.gameActive || false;
-
                 if (data.turn !== undefined) {
                     currentTurn = data.turn;
                     turnNumber.textContent = currentTurn;
                 }
 
+                // === LẮNG NGHE TIMER TỪ HOST ===
+                if (data.timer !== undefined && data.timer !== null) {
+                    const newTimer = data.timer;
+                    if (data.status === 'betting' && data.gameActive && !isTimerRunning && !isWaitingForResult) {
+                        startTimerFromFirebase(newTimer);
+                    }
+                    // Nếu timer đang chạy, cập nhật hiển thị
+                    if (isTimerRunning) {
+                        // Không làm gì, timer tự chạy
+                    }
+                }
+
                 if (data.status === 'rolling' && data.result) {
                     updateDiceResult(data.result);
                     isRolling = true;
+                    if (timerInterval) {
+                        clearInterval(timerInterval);
+                        timerInterval = null;
+                        isTimerRunning = false;
+                    }
                 }
 
                 if (data.history) {
@@ -1431,7 +1377,7 @@
                         });
                         document.querySelectorAll('.quick-bets button').forEach(el => el.disabled = true);
                         betAmountInput.disabled = true;
-                    } else if (isGameActive && !isRolling) {
+                    } else if (isGameActive && !isRolling && !isWaitingForResult) {
                         document.querySelectorAll('.bet-option').forEach(el => {
                             el.classList.remove('disabled', 'betted');
                         });
@@ -1443,15 +1389,12 @@
                 }
 
                 if (data.status === 'waiting' && !data.gameActive) {
-                    statusDisplay.textContent = '⏳ Chờ host bắt đầu...';
+                    statusDisplay.textContent = '⏳ Chờ host...';
                     statusDisplay.style.color = '#95a5a6';
-                    if (!isRolling) {
+                    if (!isRolling && !isWaitingForResult) {
                         resultText.textContent = '⏳ Chờ host...';
                         resultText.className = 'result-text waiting';
                     }
-                } else if (data.status === 'betting' && data.gameActive) {
-                    statusDisplay.textContent = '⏳ Đang đặt cược';
-                    statusDisplay.style.color = '#3498db';
                 }
             });
 
@@ -1477,30 +1420,24 @@
             updateLeaderboard();
         }
 
-        // =====================================================
-        // CHECK TOP PLAYERS
-        // =====================================================
+        // ===== CHECK TOP =====
         function checkTopPlayers(players) {
             const entries = Object.entries(players);
             const sorted = entries.sort((a, b) => (b[1].balance || 0) - (a[1].balance || 0));
-
             sorted.forEach(([pid, data], index) => {
-                if (data.balance >= WIN_SCORE && index < 3) {
+                if (data.balance >= 5000 && index < 3) {
                     const rank = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
                     showToast(`🏆 ${data.name} đạt ${rank} với ${data.balance} điểm!`, 'success');
                 }
             });
         }
 
-        // =====================================================
-        // UPDATE DICE RESULT
-        // =====================================================
+        // ===== UPDATE DICE =====
         function updateDiceResult(result) {
             const dice = result.dice || [1, 1, 1];
             const total = result.total || 0;
             const winner = result.winner || '';
             const isBao = result.isBao || false;
-
             const diceSymbols = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
 
             document.querySelectorAll('.dice').forEach(el => {
@@ -1531,21 +1468,19 @@
                     showToast(`🎉 Bạn thắng! +${myBetAmount * 2} điểm`, 'success');
                 }
             }
-
             totalText.textContent = `Tổng: ${total}`;
             isRolling = false;
+            isWaitingForResult = false;
+            isTimerRunning = false;
         }
 
-        // =====================================================
-        // UPDATE HISTORY
-        // =====================================================
+        // ===== UPDATE HISTORY =====
         function updateHistory(history) {
             const historyArray = Object.values(history);
             if (historyArray.length === 0) {
                 historyList.innerHTML = '<span>Chưa có dữ liệu</span>';
                 return;
             }
-
             const latest = historyArray.slice(-20).reverse();
             historyList.innerHTML = latest.map(item => {
                 const result = item.result || 'thap';
@@ -1555,18 +1490,14 @@
             }).join('');
         }
 
-        // =====================================================
-        // SEND CHAT
-        // =====================================================
+        // ===== CHAT =====
         window.sendChat = async function() {
             if (!isLoggedIn || !currentPlayerId) {
                 showToast('Vui lòng đăng nhập!', 'error');
                 return;
             }
-
             const message = chatInput.value.trim();
             if (!message) return;
-
             try {
                 await callAPI('chat', 'POST', {
                     userId: currentPlayerId,
@@ -1579,13 +1510,9 @@
             }
         };
 
-        // =====================================================
-        // ADD CHAT MESSAGE
-        // =====================================================
         function addChatMessage(msg) {
             const empty = chatMessages.querySelector('.chat-empty');
             if (empty) empty.remove();
-
             const time = new Date(msg.timestamp).toLocaleTimeString();
             const div = document.createElement('div');
             div.className = 'chat-message';
@@ -1598,9 +1525,7 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // =====================================================
-        // LEADERBOARD
-        // =====================================================
+        // ===== LEADERBOARD =====
         async function updateLeaderboard() {
             try {
                 const data = await callAPI('leaderboard', 'GET');
@@ -1608,7 +1533,6 @@
                     leaderboardList.innerHTML = '<div class="loading">Chưa có người chơi</div>';
                     return;
                 }
-
                 leaderboardList.innerHTML = data.map((item, index) => {
                     let medal = `#${index + 1}`;
                     let cls = '';
@@ -1618,9 +1542,7 @@
                         cls = 'lb-top2'; }
                     if (index === 2) { medal = '🥉';
                         cls = 'lb-top3'; }
-
-                    const isTop = item.balance >= WIN_SCORE;
-
+                    const isTop = item.balance >= 5000;
                     return `
                         <div class="lb-item ${cls}">
                             <span class="lb-rank">${medal}</span>
@@ -1635,16 +1557,11 @@
             }
         }
 
-        // =====================================================
-        // SET BET
-        // =====================================================
         window.setBet = function(amount) {
             betAmountInput.value = amount;
         };
 
-        // =====================================================
-        // EVENTS
-        // =====================================================
+        // ===== EVENTS =====
         loginNickBtn.addEventListener('click', () => {
             loginWithNickname(nicknameInput.value.trim());
         });
@@ -1665,13 +1582,24 @@
         betCao.addEventListener('click', () => placeBet('cao'));
         betThap.addEventListener('click', () => placeBet('thap'));
 
-        // =====================================================
-        // INIT
-        // =====================================================
-        console.log('🎲 Vui Cùng Xúc Xắc - Client started!');
-        console.log(`📡 Worker URL: ${WORKER_URL}`);
-        console.log('🏆 Điểm để đạt Top:', WIN_SCORE);
-        console.log('🔑 Đăng nhập bằng biệt danh - Tự động vào đúng tài khoản');
+        // ===== AUTO LOGIN VIA URL =====
+        (async function init() {
+            const nameFromURL = getNicknameFromURL();
+            if (nameFromURL) {
+                urlLoginBadge.style.display = 'inline-block';
+                urlLoginBadge.textContent = `🔗 Đăng nhập: ${nameFromURL}`;
+                nicknameInput.value = nameFromURL;
+                loginModal.style.display = 'none';
+                await loginWithNickname(nameFromURL);
+            } else {
+                loginModal.style.display = 'flex';
+            }
+
+            console.log('🎲 Vui Cùng Xúc Xắc - Client started!');
+            console.log(`📡 Worker URL: ${WORKER_URL}`);
+            console.log('🔗 Hỗ trợ đăng nhập qua URL: ?name=Ten');
+            console.log('🔄 Client lắng nghe timer từ host');
+        })();
     </script>
 </body>
 </html>

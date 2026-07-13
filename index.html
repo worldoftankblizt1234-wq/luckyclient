@@ -999,52 +999,40 @@
         }
 
         // =====================================================
-        // THÊM NGƯỜI CHƠI
+        // LẤY HOẶC TẠO NGƯỜI CHƠI TRONG DATABASE
         // =====================================================
-        async function addPlayerToDatabase(userId, nickname) {
+        async function getOrCreatePlayer(userId, nickname) {
             try {
                 const playerRef = ref(db, `rooms/${ROOM_ID}/players/${userId}`);
                 const snapshot = await get(playerRef);
 
-                if (!snapshot.exists()) {
-                    await set(playerRef, {
-                        name: nickname,
+                if (snapshot.exists()) {
+                    // Lấy tên từ database
+                    const data = snapshot.val();
+                    return data.name || nickname || 'Người chơi';
+                } else {
+                    // Tạo mới người chơi
+                    const playerData = {
+                        name: nickname || 'Người chơi',
                         balance: 1000,
                         bet_choice: null,
                         bet_amount: 0,
                         wins: 0,
                         totalGames: 0,
                         joinedAt: Date.now()
-                    });
-                    console.log(`✅ Đã thêm người chơi ${nickname}`);
+                    };
+                    await set(playerRef, playerData);
+                    console.log(`✅ Đã tạo người chơi mới: ${playerData.name}`);
+                    return playerData.name;
                 }
-                return true;
             } catch (error) {
-                console.error('❌ Lỗi thêm người chơi:', error);
-                return false;
+                console.error('❌ Lỗi get/create player:', error);
+                return nickname || 'Người chơi';
             }
         }
 
         // =====================================================
-        // LẤY TÊN NGƯỜI CHƠI TỪ DATABASE
-        // =====================================================
-        async function getPlayerName(userId) {
-            try {
-                const playerRef = ref(db, `rooms/${ROOM_ID}/players/${userId}`);
-                const snapshot = await get(playerRef);
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    return data.name || 'Người chơi';
-                }
-                return 'Người chơi';
-            } catch (error) {
-                console.error('Lỗi lấy tên người chơi:', error);
-                return 'Người chơi';
-            }
-        }
-
-        // =====================================================
-        // AUTH
+        // ĐĂNG NHẬP
         // =====================================================
         async function loginWithNickname(nickname) {
             if (!nickname || nickname.trim() === '') {
@@ -1066,11 +1054,12 @@
                     displayName: nickname.trim()
                 });
 
-                // Lưu vào state
-                currentNickname = nickname.trim();
-                userNameDisplay.textContent = `👤 ${currentNickname}`;
+                // Lưu vào database
+                const playerName = await getOrCreatePlayer(user.uid, nickname.trim());
 
-                showToast(`Chào mừng ${nickname}!`, 'success');
+                currentNickname = playerName;
+                userNameDisplay.textContent = `👤 ${playerName}`;
+                showToast(`Chào mừng ${playerName}!`, 'success');
 
             } catch (error) {
                 console.error('Login error:', error);
@@ -1082,32 +1071,28 @@
         }
 
         // =====================================================
-        // AUTH STATE LISTENER - FIX LỖI TÊN
+        // AUTH STATE LISTENER - ƯU TIÊN ĐỌC TỪ DATABASE
         // =====================================================
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
 
-                // === LẤY TÊN TỪ DATABASE TRƯỚC ===
-                let displayName = await getPlayerName(user.uid);
+                // ===== ƯU TIÊN 1: LẤY TÊN TỪ DATABASE =====
+                const playerName = await getOrCreatePlayer(user.uid, user.displayName || 'Người chơi');
 
-                // Nếu chưa có trong database, dùng displayName từ Auth
-                if (displayName === 'Người chơi' && user.displayName) {
-                    displayName = user.displayName;
-                }
-
-                currentNickname = displayName;
-                userNameDisplay.textContent = `👤 ${displayName}`;
+                currentNickname = playerName;
+                userNameDisplay.textContent = `👤 ${playerName}`;
                 logoutBtn.style.display = 'inline-block';
                 loginModal.style.display = 'none';
 
-                // Tạo database và thêm người chơi
+                // Kiểm tra và tạo database nếu chưa có
                 await createDatabaseStructure();
-                await addPlayerToDatabase(user.uid, displayName);
 
+                // Tham gia phòng
                 await joinRoom();
                 listenRoom();
 
+                // Bắt đầu timer
                 setTimeout(() => startTimer(), 1000);
 
             } else {
@@ -1188,15 +1173,6 @@
 
                 const players = data.players || {};
                 playerCount.textContent = Object.keys(players).length;
-
-                // Cập nhật tên nếu có thay đổi
-                if (currentUser && players[currentUser.uid]) {
-                    const playerData = players[currentUser.uid];
-                    if (playerData.name && playerData.name !== currentNickname) {
-                        currentNickname = playerData.name;
-                        userNameDisplay.textContent = `👤 ${currentNickname}`;
-                    }
-                }
 
                 if (data.status === 'rolling' && data.result) {
                     updateDiceResult(data.result);

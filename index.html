@@ -66,6 +66,8 @@
 </head>
 <body class="p-4 sm:p-6 md:p-8">
 
+    <!-- ====== STREAMING_CHUNK: Rendering Setup Room ID screen... ====== -->
+    <!-- MÀN HÌNH KHỞI TẠO PHÒNG -->
     <div id="setup-lobby-screen" class="min-h-[80vh] flex flex-col items-center justify-center p-4">
         <div class="glass-panel rounded-3xl p-8 max-w-md w-full text-center border border-white/10 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -88,6 +90,8 @@
         </div>
     </div>
 
+    <!-- ====== STREAMING_CHUNK: Building Host Real-time Dashboard... ====== -->
+    <!-- MÀN HÌNH DASHBOARD CỦA HOST -->
     <div id="host-dashboard" class="hidden max-w-5xl mx-auto">
         <header class="glass-panel text-white p-6 rounded-3xl shadow-lg mb-8 border border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
@@ -120,30 +124,37 @@
                     <!-- TRẠNG THÁI HIỆN TẠI -->
                     <div class="bg-black/30 border border-white/5 rounded-2xl p-4 mb-6 flex justify-between items-center flex-wrap gap-4">
                         <div>
-                            <span class="text-xs text-gray-400 block uppercase font-semibold">Trận đấu kế tiếp</span>
-                            <span id="current-state-text" class="text-lg font-black text-amber-400">Đang bình chọn trò chơi...</span>
+                            <span class="text-xs text-gray-400 block uppercase font-semibold">Trạng thái đấu trường</span>
+                            <span id="current-state-text" class="text-lg font-black text-amber-400">Đang chờ kích hoạt bình chọn...</span>
                         </div>
                         <div class="text-right">
                             <span class="text-xs text-gray-400 block uppercase font-semibold">Bộ đếm ngược</span>
-                            <span id="timer-text" class="text-2xl font-black text-emerald-400">00:30</span>
+                            <span id="timer-text" class="text-2xl font-black text-emerald-400">--:--</span>
                         </div>
                     </div>
 
-                    <!-- DANH SÁCH NÚT HÀNH ĐỘNG -->
+                    <!-- ====== STREAMING_CHUNK: Rendering action control buttons... ====== -->
+                    <!-- DANH SÁCH NÚT HÀNH ĐỘNG DÀNH CHO HOST -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button onclick="triggerGameStage(1)" class="btn-action bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2">
+                        <!-- Nút Bắt đầu bình chọn (Sử dụng để kích hoạt Client) -->
+                        <button id="host-btn-start-voting" onclick="startVotingProcess()" class="btn-action bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-extrabold py-4 px-6 rounded-2xl flex items-center justify-center gap-2 sm:col-span-2 shadow-lg">
+                            <i class="fas fa-play-circle text-xl animate-pulse"></i>
+                            <span>⚡ BẮT ĐẦU BÌNH CHỌN (MỞ KHÓA CLIENT)</span>
+                        </button>
+
+                        <button id="host-btn-game1" onclick="triggerGameStage(1)" class="btn-action bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all opacity-50 pointer-events-none">
                             <i class="fas fa-play"></i>
-                            <span>Bắt đầu Trò chơi 1</span>
+                            <span>Kích hoạt Trò chơi 1</span>
                         </button>
                         
-                        <button onclick="triggerGameStage(2)" class="btn-action bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2">
+                        <button id="host-btn-game2" onclick="triggerGameStage(2)" class="btn-action bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-all opacity-50 pointer-events-none">
                             <i class="fas fa-forward"></i>
                             <span>⏩ CHUYỂN SANG TRÒ 2</span>
                         </button>
                         
                         <button onclick="resetLobbyTimer()" class="btn-action bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-3 px-6 rounded-xl text-sm flex items-center justify-center gap-1.5 sm:col-span-2 mt-2">
                             <i class="fas fa-sync-alt"></i>
-                            <span>🔄 RESET BÌNH CHỌN MỚI (30 GIÂY)</span>
+                            <span>🔄 RESET PHÒNG VỀ CHUẨN BỊ (LÀM MỚI VOTE)</span>
                         </button>
                     </div>
                 </div>
@@ -222,6 +233,7 @@
     <!-- KHUNG CHỨA TOAST NOTIFICATION -->
     <div id="toast-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2"></div>
 
+    <!-- ====== STREAMING_CHUNK: Initializing PeerJS and master state synchronization... ====== -->
     <script type="module">
         const gameNames = {
             stock_market: 'Mô Phỏng Chứng Khoán 📈',
@@ -232,12 +244,12 @@
         let connections = [];
         let roomId = '';
 
-        // Trạng thái trung tâm MASTER STATE (Nguồn dữ liệu tối cao)
+        // Master State đồng bộ dữ liệu tới Client
         let masterState = {
-            players: {}, // Cấu trúc: { connectionPeerId: { name: '...', vote: '...' } }
+            players: {}, // { connectionPeerId: { name: '...', vote: '...' } }
             timer: 30,
-            gameState: 'voting', // 'voting' | 'transition' | 'playing'
-            activeGame: null, // 'stock_market' | 'quiz'
+            gameState: 'idle', // 'idle' (chờ kích hoạt) | 'voting' (đang vote) | 'transition' | 'playing'
+            activeGame: null,
             firstGame: 'stock_market',
             secondGame: 'quiz',
             currentGameIndex: 1
@@ -251,7 +263,6 @@
                 showToast("Vui lòng nhập mã phòng hợp lệ!", "error");
                 return;
             }
-            // Lọc ký tự đặc biệt phù hợp làm PeerJS ID
             roomId = rawRoom.replace(/[^a-zA-Z0-9-_]/g, '').toLowerCase();
 
             document.getElementById('setup-lobby-screen').classList.add('hidden');
@@ -262,7 +273,6 @@
         };
 
         function initHostPeer() {
-            // Đăng ký Peer ID dự đoán cố định để Client tự định tuyến
             const hostPeerId = `arena-${roomId}-host`;
             
             try {
@@ -271,7 +281,8 @@
                 peer.on('open', (id) => {
                     console.log("Host PeerID Online:", id);
                     updateConnectionUI('online');
-                    startLobbyTimer();
+                    showToast("Phòng chờ khởi tạo thành công! Đang ở trạng thái chờ kích hoạt.", "success");
+                    renderHostUI();
                 });
 
                 peer.on('connection', (conn) => {
@@ -293,6 +304,7 @@
             }
         }
 
+        /* ====== STREAMING_CHUNK: Managing Host WebRTC communication logic... ====== */
         function updateConnectionUI(status) {
             const badge = document.getElementById('connection-badge');
             const dot = document.getElementById('connection-dot');
@@ -323,6 +335,12 @@
                     calculateStandings();
                     broadcastMasterState();
                 } else if (data.type === 'VOTE') {
+                    // Chỉ nhận vote khi trạng thái là 'voting'
+                    if (masterState.gameState !== 'voting') {
+                        conn.send({ type: 'VOTE_REJECTED', reason: 'Cuộc bình chọn chưa được kích hoạt hoặc đã kết thúc!' });
+                        return;
+                    }
+
                     if (masterState.players[conn.peer]) {
                         masterState.players[conn.peer].vote = data.choice;
                         playBeep(800, 0.08);
@@ -372,21 +390,50 @@
                 masterState.firstGame = 'stock_market';
                 masterState.secondGame = 'quiz';
             } else {
-                // Nếu hòa nhau thì ưu tiên game 1 là Chứng Khoán
                 masterState.firstGame = 'stock_market';
                 masterState.secondGame = 'quiz';
             }
         }
 
+        /* ====== STREAMING_CHUNK: Updating Host screen rendering states... ====== */
         function renderHostUI() {
-            // Bộ đếm ngược
-            const seconds = masterState.timer;
-            document.getElementById('timer-text').innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
-            
-            document.getElementById('current-state-text').innerText = 
-                masterState.gameState === 'voting' ? "Đang bình chọn trò chơi..." :
-                masterState.gameState === 'transition' ? "Chuẩn bị khởi chạy game..." :
-                `Đang chơi: ${gameNames[masterState.activeGame]} (Trò ${masterState.currentGameIndex}/2)`;
+            const timerText = document.getElementById('timer-text');
+            const stateText = document.getElementById('current-state-text');
+            const startBtn = document.getElementById('host-btn-start-voting');
+            const game1Btn = document.getElementById('host-btn-game1');
+            const game2Btn = document.getElementById('host-btn-game2');
+
+            // Cập nhật giao diện nút dựa vào trạng thái đấu trường
+            if (masterState.gameState === 'idle') {
+                timerText.innerText = "--:--";
+                stateText.innerText = "Chờ Quản trò bấm mở khóa bình chọn...";
+                
+                startBtn.classList.remove('hidden');
+                game1Btn.classList.add('opacity-50', 'pointer-events-none');
+                game2Btn.classList.add('opacity-50', 'pointer-events-none');
+            } else if (masterState.gameState === 'voting') {
+                const seconds = masterState.timer;
+                timerText.innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
+                stateText.innerText = "Đang diễn ra bình chọn trên thiết bị Client...";
+                
+                startBtn.classList.add('hidden');
+                game1Btn.classList.add('opacity-50', 'pointer-events-none');
+                game2Btn.classList.add('opacity-50', 'pointer-events-none');
+            } else if (masterState.gameState === 'transition') {
+                timerText.innerText = "00:00";
+                stateText.innerText = "Bình chọn hoàn tất! Sẵn sàng khởi chạy game...";
+                
+                startBtn.classList.add('hidden');
+                game1Btn.classList.remove('opacity-50', 'pointer-events-none');
+                game2Btn.classList.remove('opacity-50', 'pointer-events-none');
+            } else if (masterState.gameState === 'playing') {
+                timerText.innerText = "PLAY";
+                stateText.innerText = `Đang chơi: ${gameNames[masterState.activeGame]} (Trò ${masterState.currentGameIndex}/2)`;
+                
+                startBtn.classList.add('hidden');
+                game1Btn.classList.remove('opacity-50', 'pointer-events-none');
+                game2Btn.classList.remove('opacity-50', 'pointer-events-none');
+            }
 
             // Render danh sách User
             let stock = 0, quiz = 0;
@@ -442,27 +489,16 @@
             document.getElementById('expected-second-game').innerText = gameNames[masterState.secondGame];
         }
 
-        function startLobbyTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (masterState.gameState === 'voting' && masterState.timer > 0) {
-                    masterState.timer--;
-                    broadcastMasterState();
-                } else if (masterState.gameState === 'voting' && masterState.timer === 0) {
-                    // Hết 30 giây khóa bình chọn, đẩy trạng thái Client sang transition
-                    masterState.gameState = 'transition';
-                    broadcastMasterState();
-                }
-            }, 1000);
-        }
-
-        window.resetLobbyTimer = function() {
+        /* ====== STREAMING_CHUNK: Handling active timer flow and game launching... ====== */
+        window.startVotingProcess = function() {
+            if (connections.length === 0) {
+                showToast("Chưa có người chơi nào tham gia phòng để bắt đầu!", "error");
+                return;
+            }
             masterState.gameState = 'voting';
             masterState.timer = 30;
-            masterState.activeGame = null;
-            masterState.currentGameIndex = 1;
-            
-            // Clear lượt vote cũ của Client để bỏ phiếu lại
+
+            // Làm mới các phiếu bầu
             Object.keys(masterState.players).forEach(id => {
                 masterState.players[id].vote = '';
             });
@@ -470,7 +506,39 @@
             calculateStandings();
             startLobbyTimer();
             broadcastMasterState();
-            showToast("Đã thiết lập lại bộ đếm ngược 30 giây!", "success");
+            showToast("Đã mở khóa bình chọn trên các thiết bị Client!", "success");
+        };
+
+        function startLobbyTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (masterState.gameState === 'voting' && masterState.timer > 0) {
+                    masterState.timer--;
+                    broadcastMasterState();
+                } else if (masterState.gameState === 'voting' && masterState.timer === 0) {
+                    masterState.gameState = 'transition';
+                    clearInterval(timerInterval);
+                    broadcastMasterState();
+                }
+            }, 1000);
+        }
+
+        window.resetLobbyTimer = function() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            masterState.gameState = 'idle';
+            masterState.timer = 30;
+            masterState.activeGame = null;
+            masterState.currentGameIndex = 1;
+            
+            // Xóa lượt vote cũ
+            Object.keys(masterState.players).forEach(id => {
+                masterState.players[id].vote = '';
+            });
+
+            calculateStandings();
+            broadcastMasterState();
+            showToast("Đã đưa đấu trường về trạng thái chuẩn bị!", "success");
         };
 
         window.triggerGameStage = function(index) {
@@ -496,7 +564,7 @@
             }, 3000);
         }
 
-        // AUDIO
+        // AUDIO SYSTEM
         function playBeep(frequency = 600, duration = 0.15) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
